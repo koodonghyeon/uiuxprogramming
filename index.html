@@ -2,10 +2,84 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>나의 첫 웹페이지</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 서비스 | 서비스 소개</title>
 </head>
 <body>
-  <h1>나의 첫 웹페이지</h1>
-  <p>안녕하세요! 처음 만든 웹페이지입니다.</p>
+  <!--
+  사용자: 이 서비스를 처음 사용하는 사람
+  목적: 서비스의 주요 내용과 이용 방법을 이해한다.
+  핵심 행동: 필요한 영역으로 이동하고 이메일로 소식을 신청한다.
+  정보 순서: 서비스 소개 → 주요 기능 → 이용 방법 → 소식 받기
+  -->
+
+  <header>
+    <h1>나의 서비스</h1>
+    <p>일상의 불편을 더 간단하게 해결합니다.</p>
+
+    <nav aria-label="주요 메뉴">
+      <a href="#about">서비스 소개</a>
+      <a href="#features">주요 기능</a>
+      <a href="#steps">이용 방법</a>
+      <a href="#subscribe">소식 받기</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="about">
+      <h2>서비스 소개</h2>
+      <h3>데이터 보관 서비스</h3>
+      <p>누구나 안전하게 데이터를 보관할수있고 용량도 넉넉합니다.</p>
+
+      <img
+        src="./assets/images/service.jpg"
+        alt="모바일로 서비스를 이용하는 사용자"
+      >
+    </section>
+
+    <section id="features">
+      <h2>주요 기능</h2>
+
+      <ul>
+        <li>
+          <h3>쉬운 사용</h3>
+          <p>복잡한 설정 없이 이용합니다.</p>
+        </li>
+        <li>
+          <h3>안전한 관리</h3>
+          <p>데이터를 안전하게 보호합니다.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section id="steps">
+      <h2>이용 방법</h2>
+
+      <ol>
+        <li>데이터를 보관할 저장소를 선택합니다.</li>
+        <li>보관할 데이터를 선택하여 저장에서 저장합니다.</li>
+        <li>언제든 데이터를 추가하거나 삭제합니다.</li>
+      </ol>
+    </section>
+
+    <section id="subscribe">
+      <h2>소식 받기</h2>
+
+      <form>
+        <label for="email">이메일</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="name@example.com"
+        >
+        <button type="submit">소식 신청하기</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 나의 서비스</p>
+  </footer>
 </body>
 </html>
