@@ -5,15 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>나의 서비스 | 서비스 소개</title>
   <link rel="stylesheet" href="./style.css">
+  <script src="./script.js" defer></script>
 </head>
 <body>
-  <!--
-  사용자: 이 서비스를 처음 사용하는 사람
-  목적: 서비스의 주요 내용과 이용 방법을 이해한다.
-  핵심 행동: 필요한 영역으로 이동하고 이메일로 소식을 신청한다.
-  정보 순서: 서비스 소개 → 주요 기능 → 이용 방법 → 소식 받기
-  -->
-
   <header>
     <h1>나의 서비스</h1>
     <p>일상의 불편을 더 간단하게 해결합니다.</p>
@@ -66,15 +60,19 @@
     <section id="subscribe">
       <h2>소식 받기</h2>
 
-      <form>
+      <form novalidate>
         <label for="email">이메일</label>
         <input
           type="email"
           id="email"
           name="email"
           placeholder="name@example.com"
+          autocomplete="email"
+          aria-describedby="form-message"
+          required
         >
         <button type="submit">소식 신청하기</button>
+        <p id="form-message" class="form-message" aria-live="polite">이메일을 입력해 주세요.</p>
       </form>
     </section>
   </main>

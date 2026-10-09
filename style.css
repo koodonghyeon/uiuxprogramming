@@ -297,6 +297,16 @@ section > h2 {
   box-shadow: 0 0 0 4px rgba(79, 132, 239, 0.24);
 }
 
+#subscribe input.is-error {
+  border-color: #fda4af;
+  background: rgba(244, 63, 94, 0.12);
+}
+
+#subscribe input.is-success {
+  border-color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.12);
+}
+
 #subscribe button {
   height: 52px;
   padding: 0 22px;
@@ -314,6 +324,32 @@ section > h2 {
   background: #3974ec;
   box-shadow: 0 10px 26px rgba(37, 99, 235, 0.35);
   transform: translateY(-1px);
+}
+
+#subscribe button:disabled {
+  background: #168968;
+  box-shadow: none;
+  cursor: default;
+  opacity: 0.9;
+  transform: none;
+}
+
+.form-message {
+  grid-column: 2 / -1;
+  min-height: 24px;
+  margin: -2px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.9rem;
+}
+
+.form-message.is-error {
+  color: #fecdd3;
+  font-weight: 700;
+}
+
+.form-message.is-success {
+  color: #a7f3d0;
+  font-weight: 700;
 }
 
 nav a:focus-visible,
@@ -394,6 +430,11 @@ footer p {
   #subscribe form {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .form-message {
+    grid-column: 1;
+    margin-top: 0;
   }
 
   #subscribe button {
