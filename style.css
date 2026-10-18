@@ -114,7 +114,7 @@ section > h2 {
 
 #about {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
   grid-template-areas:
     "eyebrow image"
     "title image"
@@ -327,41 +327,11 @@ section > h2 {
 }
 
 #subscribe button:disabled {
-  background: #42536b;
+  background: #168968;
   box-shadow: none;
   cursor: default;
   opacity: 0.9;
   transform: none;
-}
-
-/* 6주차: 세 개의 탭과 선택/입력 상태 */
-[hidden] { display: none !important; }
-.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 28px; padding: 6px; border-radius: 14px; background: #edf2f9; }
-.tabs button { min-width: 0; min-height: 48px; padding: 10px 8px; border: 0; border-radius: 10px; background: transparent; color: #46566e; font: inherit; font-weight: 700; cursor: pointer; }
-.tabs button[aria-selected="true"] { background: var(--blue); color: white; box-shadow: 0 4px 12px #2563eb26; }
-.tabs button:hover:not([aria-selected="true"]) { background: #dce7f8; }
-.tab-panel { overflow-wrap: anywhere; }
-#features .panel-intro { margin-bottom: 22px; }
-.field-label { display: block; margin-bottom: 8px; font-weight: 700; }
-#capacity { display: block; width: 100%; min-width: 0; min-height: 52px; padding: 12px; border: 1px solid #aab7c9; border-radius: 12px; background: white; color: var(--text); font: inherit; }
-.capacity-summary { margin: 18px 0; padding: 20px; border: 2px solid var(--line); border-radius: 14px; background: #f8fafc; }
-.capacity-summary strong { display: block; margin-bottom: 6px; font-size: 1.15rem; }
-.capacity-summary.is-selected { border-color: var(--blue); background: var(--blue-soft); }
-.capacity-summary.is-confirmed { border-color: #168968; background: #ecfdf5; }
-.action-button { width: 100%; min-height: 52px; padding: 12px 18px; border: 0; border-radius: 12px; background: var(--blue); color: white; font: inherit; font-weight: 700; cursor: pointer; }
-.action-button:hover:enabled { background: var(--blue-dark); }
-.action-button:disabled { background: #e4eaf2; color: #4d5d73; cursor: default; }
-#features .demo-note { margin-top: 18px; font-size: 0.88rem; }
-.guide-list { display: grid; gap: 14px; padding-left: 24px; }
-#features .guide-list li { min-height: 0; padding: 16px; overflow: visible; }
-#features .guide-list li::after { content: none; }
-.subscribe-intro { margin: -8px 0 24px; color: #c2cee1; }
-button:focus-visible, select:focus-visible, .tab-panel:focus-visible { outline: 3px solid #729fff; outline-offset: 4px; }
-.form-message { overflow-wrap: anywhere; }
-@media (max-width: 420px) {
-  .tabs { gap: 3px; padding: 4px; }
-  .tabs button { font-size: 0.9rem; padding-inline: 4px; }
-  .capacity-summary { padding: 16px; }
 }
 
 .form-message {
