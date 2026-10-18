@@ -76,7 +76,7 @@ const updateEmailState = () => {
   const empty = emailInput.value.trim() === "";
   const valid = !empty && emailInput.validity.valid;
   submitButton.disabled = !valid;
-  submitButton.textContent = valid ? "소식 신청 체험하기" : "이메일을 확인해 주세요";
+  submitButton.textContent = valid ? "소식 신청하기" : "이메일을 확인해 주세요";
   if (empty) {
     submitButton.textContent = "이메일을 입력해 주세요";
     setFormState("default", "출시 소식을 받을 이메일을 입력해 주세요.");
@@ -95,8 +95,8 @@ subscribeForm.addEventListener("submit", (event) => {
     emailInput.focus();
     return;
   }
-  setFormState("success", "소식 신청 체험이 완료되었습니다.");
+  setFormState("success", `${emailInput.value.trim()} 주소로 소식 신청 체험이 완료되었습니다.`);
   submitButton.disabled = true;
-  submitButton.textContent = "체험 완료";
+  submitButton.textContent = "신청 완료";
 });
 updateEmailState();
