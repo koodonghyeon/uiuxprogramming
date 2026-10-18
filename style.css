@@ -519,3 +519,60 @@ footer p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 소식 신청: 시작 → 입력 → 확인 → 완료 */
+.flow-link { display: inline-block; margin-top: 22px; padding: 10px 0; color: var(--blue-dark); font-weight: 700; }
+#features .plan-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.flow-progress { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 0; margin: 30px 0 14px; list-style: none; }
+.flow-progress li { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid #42536b; border-radius: 12px; color: #b9c6d9; font-size: 0.9rem; }
+.flow-progress span { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%; background: #2b3c56; font-weight: 800; }
+.flow-progress li[aria-current="step"] { color: white; background: #1a3c72; border-color: #93b5ff; font-weight: 700; }
+.flow-progress li[aria-current="step"] span { color: var(--navy); background: #b4cfff; }
+.flow-progress li.is-complete { border-color: #509c8c; color: #a7f3d0; }
+.flow-status { margin: 0 0 22px; color: #b4cfff; font-size: 0.9rem; }
+.flow-panel { min-width: 0; padding: 24px; border: 1px solid #3d4f6c; border-radius: 18px; background: #142640; overflow-wrap: anywhere; }
+.flow-panel h3 { margin: 0 0 12px; font-size: 1.4rem; line-height: 1.4; }
+.flow-panel h3:focus { outline: none; }
+.flow-panel h3:focus-visible { outline: 2px solid #93b5ff; outline-offset: 5px; }
+.flow-panel p { margin: 0 0 18px; }
+#subscribe .flow-hint { color: #bdcbe0; font-size: 0.9rem; }
+#subscribe form { display: block; }
+.flow-field { margin-top: 24px; min-width: 0; }
+.flow-field label { display: block; margin-bottom: 8px; }
+.flow-field label span { color: #b4cfff; font-size: 0.85rem; }
+#subscribe input, #subscribe select { width: 100%; }
+#subscribe #capacity { background: #20334f; border-color: #6a7c95; color: #fff; }
+#subscribe #capacity option { color: #172033; background: white; }
+#subscribe .is-error:is(input, select) { border-color: #fda4af; background: #472c40; }
+#subscribe .is-success:is(input, select) { border-color: #6ee7b7; background: #163e3e; }
+#subscribe .field-message { margin: 8px 0 0; color: #bdcbe0; font-size: 0.9rem; }
+#subscribe .field-message.is-error { color: #fecdd3; }
+#subscribe .field-message.is-success { color: #a7f3d0; }
+#subscribe .form-message { margin: 24px 0 16px; }
+.flow-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 22px; }
+#subscribe button { min-height: 48px; height: auto; padding: 13px 20px; max-width: 100%; white-space: normal; }
+#subscribe .secondary-button { background: transparent; border: 1px solid #8093af; font-weight: 600; }
+#subscribe .secondary-button:hover { background: #263c5c; }
+#subscribe #review-button { background: #405574; }
+#subscribe #review-button.is-ready { background: var(--blue); }
+.flow-summary { margin: 24px 0; }
+.flow-summary > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 16px; padding: 16px 0; border-bottom: 1px solid #42536b; }
+.flow-summary dt { color: #bdcbe0; }
+.flow-summary dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; min-width: 0; }
+.completion-panel { border-color: #6ee7b7; background: #153c3b; }
+.completion-mark { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #a7f3d0; color: #123a32; font-size: 1.7rem; margin-bottom: 18px; }
+.flow-reset { margin-top: 22px; }
+#subscribe .flow-reset p { margin: 10px 0 0; }
+@media (max-width: 768px) {
+  #features .plan-options { grid-template-columns: 1fr; }
+  .flow-progress li { flex-direction: column; gap: 6px; padding: 10px 4px; text-align: center; }
+}
+@media (max-width: 420px) {
+  .flow-progress { gap: 5px; }
+  .flow-progress li { font-size: 0.78rem; }
+  .flow-panel { padding: 18px 14px; }
+  .flow-panel h3 { font-size: 1.2rem; }
+  .flow-actions { flex-direction: column; }
+  #subscribe button { width: 100%; padding-inline: 12px; }
+  .flow-summary > div { grid-template-columns: 1fr; gap: 5px; }
+}

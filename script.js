@@ -25,78 +25,134 @@ tabs.forEach((tab, index) => {
   });
 });
 
-// change: 선택 용량에 따라 문구, 카드 스타일, 버튼 상태가 함께 바뀝니다.
+// 소식 신청은 시작 → 입력 → 확인 → 완료의 네 상태로 진행합니다.
 const plans = {
   "10": { label: "10GB", description: "문서와 과제 파일을 가볍게 모아두기에 알맞아요." },
   "100": { label: "100GB", description: "사진과 일상 기록을 여유 있게 정리하고 싶은 분께 추천해요." },
   "1000": { label: "1TB", description: "동영상과 대용량 프로젝트 자료를 보관하고 싶은 분께 추천해요." },
 };
+const subscribeForm = document.querySelector("#subscribe-form");
 const capacitySelect = document.querySelector("#capacity");
-const capacitySummary = document.querySelector("#capacity-summary");
-const capacityTitle = document.querySelector("#capacity-title");
-const capacityMessage = document.querySelector("#capacity-message");
-const capacityButton = document.querySelector("#capacity-button");
-
-capacitySelect.addEventListener("change", () => {
-  const plan = plans[capacitySelect.value];
-  capacitySummary.classList.toggle("is-selected", Boolean(plan));
-  capacitySummary.classList.remove("is-confirmed");
-  capacityTitle.textContent = plan ? `${plan.label} 보관소` : "아직 선택한 용량이 없어요";
-  capacityMessage.textContent = plan ? plan.description : "용량을 선택하면 추천 용도와 선택 버튼이 바뀝니다.";
-  capacityButton.disabled = !plan;
-  capacityButton.textContent = plan ? `${plan.label} 선택 완료하기` : "용량을 먼저 선택해 주세요";
-});
-
-capacityButton.addEventListener("click", () => {
-  const plan = plans[capacitySelect.value];
-  if (!plan) return;
-  capacitySummary.classList.add("is-confirmed");
-  capacityTitle.textContent = `${plan.label} 선택 완료`;
-  capacityMessage.textContent = "관심 용량을 선택했어요. 다른 용량으로 바꾸어 다시 체험할 수 있습니다.";
-  capacityButton.textContent = "선택 완료";
-  capacityButton.disabled = true;
-});
-
-const subscribeForm = document.querySelector("#subscribe form");
 const emailInput = document.querySelector("#email");
-const submitButton = subscribeForm.querySelector('button[type="submit"]');
+const capacityMessage = document.querySelector("#capacity-message");
+const emailMessage = document.querySelector("#email-message");
 const formMessage = document.querySelector("#form-message");
+const reviewButton = document.querySelector("#review-button");
+const confirmButton = document.querySelector("#confirm-button");
+const panels = [...document.querySelectorAll(".flow-panel")];
+const progressItems = [...document.querySelectorAll(".flow-progress li")];
+const stageNames = ["시작", "정보 입력", "확인", "완료"];
+let currentStep = 0;
+let touched = { capacity: false, email: false };
 
-const setFormState = (type, message) => {
-  formMessage.textContent = message;
-  formMessage.classList.toggle("is-error", type === "error");
-  formMessage.classList.toggle("is-success", type === "success");
-  emailInput.classList.toggle("is-error", type === "error");
-  emailInput.classList.toggle("is-success", type === "success");
-  emailInput.setAttribute("aria-invalid", String(type === "error"));
+const getValues = () => ({ capacity: capacitySelect.value, email: emailInput.value.trim() });
+const isValid = () => Boolean(plans[capacitySelect.value]) && Boolean(emailInput.value.trim()) && emailInput.validity.valid;
+
+const showStep = (step, moveFocus = true) => {
+  currentStep = step;
+  panels.forEach((panel, index) => { panel.hidden = index !== step; });
+  progressItems.forEach((item, index) => {
+    if (index === step) item.setAttribute("aria-current", "step");
+    else item.removeAttribute("aria-current");
+    item.classList.toggle("is-complete", index < step || step === 3);
+  });
+  document.querySelector("#flow-status").textContent = `${step + 1} / 4단계 · ${stageNames[step]}`;
+  document.querySelector(".flow-reset").hidden = step === 3 || (step === 0 && !touched.capacity && !touched.email);
+  if (moveFocus) panels[step].querySelector("h3").focus();
 };
 
-// input: 입력 중에도 즉시 안내, 입력란 색상, 신청 가능 여부를 갱신합니다.
-const updateEmailState = () => {
-  const empty = emailInput.value.trim() === "";
-  const valid = !empty && emailInput.validity.valid;
-  submitButton.disabled = !valid;
-  submitButton.textContent = valid ? "소식 신청하기" : "이메일을 확인해 주세요";
-  if (empty) {
-    submitButton.textContent = "이메일을 입력해 주세요";
-    setFormState("default", "출시 소식을 받을 이메일을 입력해 주세요.");
-  } else if (!valid) {
-    setFormState("error", "올바른 이메일 형식으로 입력해 주세요. 예: name@example.com");
-  } else {
-    setFormState("success", "사용 가능한 이메일 형식입니다. 소식 신청을 체험해 보세요.");
+const setFieldState = (field, message, type, text) => {
+  field.setAttribute("aria-invalid", String(type === "error"));
+  for (const element of [field, message]) {
+    element.classList.toggle("is-error", type === "error");
+    element.classList.toggle("is-success", type === "success");
   }
+  message.textContent = text;
 };
-emailInput.addEventListener("input", updateEmailState);
+
+const validate = (showAllErrors = false) => {
+  if (showAllErrors) touched = { capacity: true, email: true };
+  const { capacity, email } = getValues();
+  const plan = plans[capacity];
+  const validEmail = Boolean(email) && emailInput.validity.valid;
+  setFieldState(capacitySelect, capacityMessage,
+    plan ? "success" : touched.capacity ? "error" : "default",
+    plan ? `${plan.label} 선택 · ${plan.description}` : touched.capacity ? "저장 용량을 선택해 주세요. 10GB, 100GB, 1TB 중 하나를 고르면 됩니다." : "보관할 파일에 맞는 용량을 선택해 주세요.");
+  setFieldState(emailInput, emailMessage,
+    validEmail ? "success" : touched.email ? "error" : "default",
+    validEmail ? "사용 가능한 이메일 형식입니다." : touched.email ? (email ? "이메일 형식을 확인해 주세요. 예: name@example.com" : "소식을 받을 이메일을 입력해 주세요. 예: name@example.com") : "소식을 받을 이메일을 입력해 주세요.");
+  const valid = Boolean(plan) && validEmail;
+  const hasError = (!plan && touched.capacity) || (!validEmail && touched.email);
+  formMessage.textContent = valid ? "입력이 완료되었습니다. 다음 단계에서 내용을 확인해 주세요." : hasError ? "표시된 항목을 수정하면 다음 단계로 이동할 수 있습니다." : "용량과 이메일을 입력해 주세요.";
+  formMessage.classList.toggle("is-error", hasError);
+  formMessage.classList.toggle("is-success", valid);
+  reviewButton.classList.toggle("is-ready", valid);
+  // 버튼을 눌러 오류 안내를 받을 수 있게 두되, submit에서 이동을 차단합니다.
+  reviewButton.textContent = valid ? "입력 내용 확인하기" : "필수 항목 확인하기";
+  return valid;
+};
+
+document.querySelector("#start-button").addEventListener("click", () => {
+  if (currentStep === 0) showStep(1);
+});
+capacitySelect.addEventListener("change", () => {
+  touched.capacity = true;
+  validate();
+});
+emailInput.addEventListener("input", () => {
+  touched.email = true;
+  validate();
+});
+document.querySelector("#input-back").addEventListener("click", () => {
+  if (currentStep === 1) showStep(0);
+});
+document.querySelector("#review-back").addEventListener("click", () => {
+  if (currentStep === 2) showStep(1);
+});
 
 subscribeForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (!emailInput.value.trim() || !emailInput.validity.valid) {
-    updateEmailState();
-    emailInput.focus();
+  if (currentStep !== 1) return;
+  if (!validate(true)) {
+    (plans[capacitySelect.value] ? emailInput : capacitySelect).focus();
     return;
   }
-  setFormState("success", `${emailInput.value.trim()} 주소로 소식 신청 체험이 완료되었습니다.`);
-  submitButton.disabled = true;
-  submitButton.textContent = "신청 완료";
+  const values = getValues();
+  // textContent로 사용자 입력을 문자열로만 표시합니다.
+  document.querySelector("#review-capacity").textContent = plans[values.capacity].label;
+  document.querySelector("#review-email").textContent = values.email;
+  showStep(2);
 });
-updateEmailState();
+
+confirmButton.addEventListener("click", () => {
+  if (currentStep !== 2) return;
+  if (!isValid()) {
+    showStep(1);
+    validate(true);
+    (plans[capacitySelect.value] ? emailInput : capacitySelect).focus();
+    return;
+  }
+  const values = getValues();
+  document.querySelector("#complete-capacity").textContent = plans[values.capacity].label;
+  document.querySelector("#complete-email").textContent = values.email;
+  document.querySelector("#complete-message").textContent = `${values.email} 주소로 소식 신청이 완료되었습니다.`;
+  confirmButton.disabled = true;
+  confirmButton.textContent = "신청 완료";
+  showStep(3);
+});
+
+const restartFlow = () => {
+  subscribeForm.reset();
+  touched = { capacity: false, email: false };
+  for (const id of ["review-capacity", "review-email", "complete-capacity", "complete-email", "complete-message"]) {
+    document.getElementById(id).textContent = "";
+  }
+  confirmButton.disabled = false;
+  confirmButton.textContent = "소식 신청하기";
+  validate();
+  showStep(0);
+};
+document.querySelector("#restart-button").addEventListener("click", restartFlow);
+document.querySelector("#reset-progress").addEventListener("click", restartFlow);
+validate();
+showStep(0, false);
