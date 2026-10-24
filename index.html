@@ -39,7 +39,7 @@
         <p class="panel-intro">데이터 보관소에서 제공할 기능을 미리 살펴보세요.</p>
         <ul>
           <li><h3>폴더별 정리</h3><p>사진, 문서, 과제 파일을 폴더로 나누어 필요한 자료를 빠르게 찾습니다.</p></li>
-          <li><h3>보관 상태 확인</h3><p>사용 중인 용량을 확인하고 파일을 추가하거나 정리합니다.</p></li>
+          <li><h3>파일 보관함 체험</h3><p>소식 신청 후 파일을 추가·삭제하고 사용 용량이 어떻게 바뀌는지 확인합니다.</p></li>
         </ul>
       </div>
 
@@ -58,8 +58,8 @@
         <h3>세 단계로 시작하는 파일 보관</h3>
         <ol class="guide-list">
           <li>용량을 비교하고 아래에서 관심 용량과 이메일을 입력해 출시 소식을 신청합니다.</li>
-          <li>출시 후에는 폴더를 만들고 사진과 문서를 올릴 수 있습니다.</li>
-          <li>필요할 때 파일을 찾고, 사용 용량을 확인하며 정리합니다.</li>
+          <li>신청 완료 화면에서 ‘파일 보관함 체험하기’를 누르고 파일을 선택해 추가합니다.</li>
+          <li>파일 목록과 남은 용량을 확인하고, 필요 없는 항목을 삭제합니다.</li>
         </ol>
       </div>
     </section>
@@ -131,12 +131,66 @@
           <div><dt>관심 용량</dt><dd id="complete-capacity"></dd></div>
           <div><dt>신청 이메일</dt><dd id="complete-email"></dd></div>
         </dl>
-        <button type="button" id="restart-button">다시 시작하기</button>
+        <p>선택한 용량으로 파일 추가와 정리를 직접 해보세요.</p>
+        <div class="flow-actions">
+          <button type="button" id="open-vault" aria-controls="vault" aria-expanded="false">파일 보관함 체험하기</button>
+          <button type="button" id="restart-button" class="secondary-button">다시 시작하기</button>
+        </div>
       </div>
       <div class="flow-reset" hidden>
         <button type="button" id="reset-progress" class="secondary-button">처음부터 다시 시작</button>
         <p class="flow-hint">다시 시작하면 입력한 용량과 이메일이 초기화됩니다.</p>
       </div>
+    </section>
+
+    <section id="vault" aria-labelledby="vault-title" hidden>
+      <div class="vault-heading">
+        <div><p class="vault-eyebrow">나의 파일 공간</p><h2 id="vault-title" tabindex="-1">파일 보관함 체험</h2></div>
+        <button type="button" id="vault-back" class="vault-secondary">신청 완료로 돌아가기</button>
+      </div>
+      <p id="vault-owner" class="vault-owner"></p>
+      <p class="vault-note">파일 이름과 크기로 보관 과정을 체험합니다. 원본 파일은 전송·변경되지 않으며, 새로고침하면 목록이 초기화됩니다.</p>
+
+      <div class="usage-card">
+        <div class="usage-heading"><h3>저장 공간</h3><strong id="vault-plan"></strong></div>
+        <label for="usage-meter" id="usage-text">사용량 0 B</label>
+        <progress id="usage-meter" value="0" max="1" aria-describedby="remaining-text"></progress>
+        <p id="remaining-text"></p>
+      </div>
+
+      <form id="vault-form" novalidate>
+        <label for="vault-files">보관할 파일 선택 <span>(여러 개 선택 가능)</span></label>
+        <input type="file" id="vault-files" multiple aria-describedby="file-help pending-summary vault-feedback">
+        <p id="file-help" class="vault-note">파일을 선택한 뒤 ‘보관함에 추가’를 누르세요. 빈 파일과 중복 파일은 추가할 수 없습니다.</p>
+        <details class="sample-files">
+          <summary>내 파일 없이 예시 파일로 체험하기</summary>
+          <p>가상 파일의 용량으로 계산합니다. 10GB 보관함에서는 두 예시를 모두 보관할 수 없어 용량 초과도 확인할 수 있습니다.</p>
+          <div class="sample-actions">
+            <button type="button" class="vault-secondary" data-sample="video">예시 동영상 선택 · 6GB</button>
+            <button type="button" class="vault-secondary" data-sample="photos">예시 사진 모음 선택 · 5GB</button>
+          </div>
+        </details>
+        <div class="pending-card">
+          <p id="pending-summary" aria-live="polite">선택한 파일이 없습니다.</p>
+          <ul id="pending-list" aria-label="추가할 파일"></ul>
+          <div class="vault-actions">
+            <button type="submit" id="add-files">보관함에 추가</button>
+            <button type="button" id="cancel-files" class="vault-secondary" disabled>선택 취소</button>
+          </div>
+        </div>
+      </form>
+      <p id="vault-feedback" class="vault-feedback" role="status" aria-live="polite">파일을 선택하거나 예시 파일로 시작해 보세요.</p>
+
+      <div class="vault-list-heading"><h3>보관한 파일 <span id="file-count">0개</span></h3><button type="button" id="reset-vault" class="vault-secondary" disabled>체험 초기화</button></div>
+      <div id="vault-reset-confirm" class="vault-reset-confirm" hidden>
+        <p id="vault-reset-question">보관함 목록과 선택 중인 파일을 모두 비울까요? 신청한 용량과 이메일은 유지됩니다.</p>
+        <div class="vault-actions">
+          <button type="button" id="confirm-vault-reset" aria-describedby="vault-reset-question">모두 비우기</button>
+          <button type="button" id="cancel-vault-reset" class="vault-secondary">취소 · 계속 보관하기</button>
+        </div>
+      </div>
+      <div id="vault-empty" class="vault-empty"><strong>아직 보관한 파일이 없습니다</strong><p>위에서 파일을 선택하고 ‘보관함에 추가’를 눌러 첫 파일을 보관해 보세요.</p></div>
+      <ul id="stored-files" class="stored-files" aria-label="보관한 파일 목록"></ul>
     </section>
   </main>
   <footer><p>© 2026 데이터 보관소 · UI/UX 프로그래밍 과제</p></footer>

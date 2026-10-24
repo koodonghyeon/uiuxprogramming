@@ -143,6 +143,9 @@ confirmButton.addEventListener("click", () => {
 
 const restartFlow = () => {
   subscribeForm.reset();
+  resetVault();
+  document.querySelector("#vault").hidden = true;
+  document.querySelector("#open-vault").setAttribute("aria-expanded", "false");
   touched = { capacity: false, email: false };
   for (const id of ["review-capacity", "review-email", "complete-capacity", "complete-email", "complete-message"]) {
     document.getElementById(id).textContent = "";
@@ -156,3 +159,197 @@ document.querySelector("#restart-button").addEventListener("click", restartFlow)
 document.querySelector("#reset-progress").addEventListener("click", restartFlow);
 validate();
 showStep(0, false);
+
+// 중간고사 새 기능: 실제 파일 내용은 읽지 않고 이름·크기 정보로 보관함을 체험합니다.
+const vault = document.querySelector("#vault");
+const fileInput = document.querySelector("#vault-files");
+const storedList = document.querySelector("#stored-files");
+const pendingList = document.querySelector("#pending-list");
+const vaultFeedback = document.querySelector("#vault-feedback");
+const resetConfirmation = document.querySelector("#vault-reset-confirm");
+const exampleFiles = {
+  video: { name: "예시 동영상.mp4", size: 6_000_000_000, lastModified: 0, sample: true },
+  photos: { name: "예시 사진 모음.zip", size: 5_000_000_000, lastModified: 0, sample: true },
+};
+let storedFiles = [];
+let pendingFiles = [];
+let nextFileId = 1;
+const usedBytes = () => storedFiles.reduce((total, file) => total + file.size, 0);
+// 단위는 십진수로 통일: 1GB = 1,000,000,000 B, 1TB = 1,000GB.
+const limitBytes = () => Number(capacitySelect.value) * 1_000_000_000;
+const fileKey = (file) => JSON.stringify([file.name, file.size, file.lastModified, Boolean(file.sample)]);
+const formatBytes = (bytes) => {
+  if (bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const unit = Math.min(Math.floor(Math.log(bytes) / Math.log(1000)), units.length - 1);
+  return `${Number((bytes / 1000 ** unit).toFixed(2)).toLocaleString("ko-KR")} ${units[unit]}`;
+};
+const setVaultFeedback = (type, message) => {
+  vaultFeedback.textContent = message;
+  vaultFeedback.classList.toggle("is-error", type === "error");
+  vaultFeedback.classList.toggle("is-success", type === "success");
+  fileInput.setAttribute("aria-invalid", String(type === "error"));
+};
+
+const renderVault = () => {
+  const used = usedBytes();
+  const limit = limitBytes();
+  const plan = plans[capacitySelect.value];
+  document.querySelector("#vault-owner").textContent = `${emailInput.value.trim()}님의 파일 보관함`;
+  document.querySelector("#vault-plan").textContent = plan ? `${plan.label} 보관함` : "용량 미선택";
+  document.querySelector("#usage-text").textContent = `사용량 ${formatBytes(used)} / ${formatBytes(limit)}`;
+  const meter = document.querySelector("#usage-meter");
+  meter.max = limit || 1;
+  meter.value = used;
+  const percentage = limit ? used / limit * 100 : 0;
+  const percentText = percentage > 0 && percentage < 0.01 ? "0.01% 미만" : `${Number(percentage.toFixed(2))}%`;
+  document.querySelector("#remaining-text").textContent = `남은 용량 ${formatBytes(Math.max(0, limit - used))} · ${percentText} 사용`;
+  document.querySelector(".usage-card").classList.toggle("is-near-full", limit > 0 && used >= limit * 0.9);
+  document.querySelector("#file-count").textContent = `${storedFiles.length}개`;
+  document.querySelector("#vault-empty").hidden = storedFiles.length > 0;
+
+  storedList.replaceChildren();
+  storedFiles.forEach((file) => {
+    const item = document.createElement("li");
+    const info = document.createElement("div");
+    const name = document.createElement("strong");
+    const size = document.createElement("span");
+    const remove = document.createElement("button");
+    name.textContent = file.name;
+    size.textContent = `${formatBytes(file.size)}${file.sample ? " · 예시 파일" : ""}`;
+    info.append(name, size);
+    remove.type = "button";
+    remove.className = "vault-secondary";
+    remove.dataset.fileId = String(file.id);
+    remove.textContent = "삭제";
+    remove.setAttribute("aria-label", `${file.name} 삭제`);
+    item.append(info, remove);
+    storedList.append(item);
+  });
+
+  const selectedBytes = pendingFiles.reduce((total, file) => total + file.size, 0);
+  document.querySelector("#pending-summary").textContent = pendingFiles.length ? `${pendingFiles.length}개 선택 · 합계 ${formatBytes(selectedBytes)}` : "선택한 파일이 없습니다.";
+  pendingList.replaceChildren();
+  pendingFiles.forEach((file) => {
+    const item = document.createElement("li");
+    item.textContent = `${file.name} · ${formatBytes(file.size)}${file.sample ? " · 예시 파일" : ""}`;
+    pendingList.append(item);
+  });
+  document.querySelector("#cancel-files").disabled = pendingFiles.length === 0;
+  document.querySelector("#reset-vault").disabled = storedFiles.length === 0 && pendingFiles.length === 0;
+  document.querySelector("#add-files").textContent = pendingFiles.length ? `${pendingFiles.length}개 파일 보관함에 추가` : "보관함에 추가";
+};
+
+const resetVault = () => {
+  storedFiles = [];
+  pendingFiles = [];
+  nextFileId = 1;
+  fileInput.value = "";
+  resetConfirmation.hidden = true;
+  setVaultFeedback("default", "파일을 선택하거나 예시 파일로 시작해 보세요.");
+  renderVault();
+};
+
+document.querySelector("#open-vault").addEventListener("click", () => {
+  if (currentStep !== 3) return;
+  vault.hidden = false;
+  document.querySelector("#open-vault").setAttribute("aria-expanded", "true");
+  renderVault();
+  document.querySelector("#vault-title").focus();
+});
+document.querySelector("#vault-back").addEventListener("click", () => {
+  vault.hidden = true;
+  resetConfirmation.hidden = true;
+  const openButton = document.querySelector("#open-vault");
+  openButton.setAttribute("aria-expanded", "false");
+  openButton.focus();
+});
+
+fileInput.addEventListener("change", () => {
+  // File 객체나 원본 내용 대신 표시와 용량 계산에 필요한 정보만 유지합니다.
+  pendingFiles = Array.from(fileInput.files, (file) => ({ name: file.name, size: file.size, lastModified: file.lastModified, sample: false }));
+  resetConfirmation.hidden = true;
+  setVaultFeedback("default", pendingFiles.length ? "선택한 파일을 확인한 뒤 ‘보관함에 추가’를 누르세요. 새로 선택하면 대기 목록이 바뀝니다." : "파일 선택을 취소했습니다. 다시 파일을 선택할 수 있습니다.");
+  renderVault();
+});
+fileInput.addEventListener("cancel", () => {
+  setVaultFeedback("default", pendingFiles.length ? "파일 선택창을 닫았습니다. 기존 선택은 유지됩니다." : "선택한 파일이 없습니다. 파일을 선택하거나 예시 파일로 시작해 보세요.");
+});
+document.querySelectorAll("[data-sample]").forEach((button) => {
+  button.addEventListener("click", () => {
+    pendingFiles = [{ ...exampleFiles[button.dataset.sample] }];
+    fileInput.value = "";
+    resetConfirmation.hidden = true;
+    setVaultFeedback("default", "예시 파일을 선택했습니다. ‘보관함에 추가’를 눌러 용량 변화를 확인하세요.");
+    renderVault();
+  });
+});
+document.querySelector("#cancel-files").addEventListener("click", () => {
+  pendingFiles = [];
+  fileInput.value = "";
+  resetConfirmation.hidden = true;
+  renderVault();
+  setVaultFeedback("default", "파일 선택을 취소했습니다. 보관한 파일은 그대로 유지됩니다.");
+  fileInput.focus();
+});
+
+document.querySelector("#vault-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (currentStep !== 3 || vault.hidden) return;
+  resetConfirmation.hidden = true;
+  let error = "";
+  const keys = new Set(storedFiles.map(fileKey));
+  const bytes = pendingFiles.reduce((total, file) => total + file.size, 0);
+  if (!pendingFiles.length) error = "추가할 파일을 먼저 선택해 주세요. 예시 파일로도 체험할 수 있습니다.";
+  else if (pendingFiles.some((file) => file.size === 0)) error = "내용이 없는 0 B 파일이 포함되어 있습니다. 내용이 있는 파일만 다시 선택해 주세요.";
+  else {
+    for (const file of pendingFiles) {
+      if (keys.has(fileKey(file))) {
+        error = `‘${file.name}’ 파일이 중복되었습니다. 다른 파일을 선택하거나 기존 항목을 삭제한 뒤 다시 추가해 주세요.`;
+        break;
+      }
+      keys.add(fileKey(file));
+    }
+    if (!error && usedBytes() + bytes > limitBytes()) {
+      error = `용량이 부족합니다. 선택한 파일은 ${formatBytes(bytes)}, 남은 공간은 ${formatBytes(limitBytes() - usedBytes())}입니다. 보관한 파일을 삭제하거나 더 작은 파일을 선택해 주세요.`;
+    }
+  }
+  if (error) {
+    setVaultFeedback("error", `${error} 보관함 목록은 변경되지 않았습니다.`);
+    fileInput.focus();
+    return;
+  }
+  const count = pendingFiles.length;
+  storedFiles.push(...pendingFiles.map((file) => ({ ...file, id: nextFileId++ })));
+  pendingFiles = [];
+  fileInput.value = "";
+  renderVault();
+  setVaultFeedback("success", `${count}개 파일을 보관함에 추가했습니다. 목록과 남은 용량을 확인하세요.`);
+});
+
+storedList.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-file-id]");
+  if (!button) return;
+  const index = storedFiles.findIndex((file) => file.id === Number(button.dataset.fileId));
+  if (index < 0) return;
+  const [removed] = storedFiles.splice(index, 1);
+  resetConfirmation.hidden = true;
+  renderVault();
+  setVaultFeedback("success", `‘${removed.name}’ 항목을 삭제했습니다. ${formatBytes(removed.size)}의 공간이 확보되었습니다.`);
+  const remainingButtons = storedList.querySelectorAll("button");
+  (remainingButtons[Math.min(index, remainingButtons.length - 1)] || fileInput).focus();
+});
+document.querySelector("#reset-vault").addEventListener("click", () => {
+  resetConfirmation.hidden = false;
+  document.querySelector("#cancel-vault-reset").focus();
+});
+document.querySelector("#cancel-vault-reset").addEventListener("click", () => {
+  resetConfirmation.hidden = true;
+  setVaultFeedback("default", "초기화를 취소했습니다. 보관한 파일과 선택 중인 파일이 유지됩니다.");
+  document.querySelector("#reset-vault").focus();
+});
+document.querySelector("#confirm-vault-reset").addEventListener("click", () => {
+  resetVault();
+  setVaultFeedback("success", "보관함 체험을 초기화했습니다. 파일을 다시 선택해 시작하세요.");
+  fileInput.focus();
+});

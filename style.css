@@ -567,6 +567,72 @@ footer p {
   #features .plan-options { grid-template-columns: 1fr; }
   .flow-progress li { flex-direction: column; gap: 6px; padding: 10px 4px; text-align: center; }
 }
+
+/* 중간고사: 파일 보관함의 선택·보관·삭제·빈 상태 */
+#vault { padding: 42px 44px; border: 1px solid var(--line); border-radius: 24px; background: white; }
+.vault-heading, .usage-heading, .vault-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.vault-heading > div, .stored-files li > div { min-width: 0; }
+.vault-eyebrow { margin: 0 0 6px; color: var(--blue); font-size: 0.85rem; font-weight: 800; }
+#vault h2 { margin: 0; color: var(--navy); font-size: clamp(1.5rem, 3vw, 2rem); }
+#vault h3 { margin: 0; font-size: 1.15rem; }
+.vault-owner { color: #344054; overflow-wrap: anywhere; }
+.vault-note { color: #5b697d; font-size: 0.9rem; }
+#vault button { min-height: 48px; max-width: 100%; padding: 11px 18px; border: 1px solid var(--blue); border-radius: 11px; background: var(--blue); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+#vault button:hover:enabled { background: var(--blue-dark); }
+#vault button.vault-secondary { border-color: #aab7c9; color: #344054; background: white; }
+#vault button.vault-secondary:hover:enabled { background: #edf3fc; }
+#vault button:disabled { background: #edf1f7; border-color: #d3dce9; color: #65748a; cursor: default; }
+.usage-card { margin: 26px 0; padding: 22px; border-radius: 16px; background: var(--blue-soft); border: 1px solid #cdddf8; }
+.usage-heading { margin-bottom: 14px; }
+.usage-heading strong { color: var(--blue-dark); }
+#usage-meter { display: block; width: 100%; height: 14px; margin-top: 12px; border: 0; border-radius: 999px; overflow: hidden; accent-color: var(--blue); background: #d9e3f3; }
+#usage-meter::-webkit-progress-bar { background: #d9e3f3; border-radius: 999px; }
+#usage-meter::-webkit-progress-value { background: var(--blue); border-radius: 999px; }
+#usage-meter::-moz-progress-bar { background: var(--blue); }
+.usage-card.is-near-full { border-color: #c98d16; background: #fff8e9; }
+.is-near-full #usage-meter::-webkit-progress-value { background: #ad6900; }
+.is-near-full #usage-meter::-moz-progress-bar { background: #ad6900; }
+#remaining-text { margin: 12px 0 0; font-size: 0.9rem; }
+#vault-form > label { display: block; margin-bottom: 10px; font-weight: 700; }
+#vault-form > label span { font-size: 0.85rem; font-weight: 400; }
+#vault-files { display: block; width: 100%; min-width: 0; padding: 10px; border: 1px solid #aab7c9; border-radius: 12px; font: inherit; background: #f8fafc; }
+#vault-files::file-selector-button { min-height: 44px; margin-right: 12px; padding: 8px 12px; border: 0; border-radius: 8px; background: #dce8fb; color: #163b75; font: inherit; cursor: pointer; }
+#vault-files[aria-invalid="true"] { border-color: #c52f45; background: #fff5f6; }
+#vault-files:focus-visible, .sample-files summary:focus-visible, #vault-title:focus-visible { outline: 3px solid #729fff; outline-offset: 4px; }
+.sample-files { margin: 20px 0; padding: 16px; border: 1px dashed #afbed3; border-radius: 12px; }
+.sample-files summary { cursor: pointer; min-height: 28px; font-weight: 700; }
+.sample-files p { color: #5b697d; font-size: 0.9rem; }
+.sample-actions, .vault-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.pending-card { padding: 20px; border-radius: 14px; background: #f5f7fb; }
+#pending-summary { margin: 0; font-weight: 700; }
+#pending-list { padding-left: 22px; margin: 12px 0; overflow-wrap: anywhere; }
+#pending-list:empty { margin: 0 0 16px; }
+.vault-feedback { margin: 18px 0 28px; padding: 14px 16px; background: #f1f5fa; color: #445269; border-radius: 12px; overflow-wrap: anywhere; }
+.vault-feedback.is-error { background: #fff0f2; color: #a01d32; border-left: 4px solid #c52f45; }
+.vault-feedback.is-success { background: #eafaf2; color: #146846; border-left: 4px solid #21845e; }
+#file-count { margin-left: 6px; font-size: 0.9rem; color: #52637b; }
+.vault-empty { margin-top: 18px; padding: 30px 20px; border: 1px dashed #afbed3; border-radius: 14px; text-align: center; }
+.vault-empty p { margin: 8px 0 0; color: #5b697d; }
+.stored-files { padding: 0; margin: 18px 0 0; list-style: none; }
+.stored-files li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.stored-files strong { display: block; overflow-wrap: anywhere; }
+.stored-files span { color: #5b697d; font-size: 0.9rem; }
+.vault-reset-confirm { margin-top: 18px; padding: 18px; border: 1px solid #c98d16; background: #fff8e9; border-radius: 14px; }
+.vault-reset-confirm p { margin-top: 0; }
+@media (max-width: 768px) {
+  #vault { padding: 30px; }
+  .vault-heading { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 420px) {
+  #vault { padding: 24px; border-radius: 20px; }
+  .usage-card, .pending-card { padding: 16px; }
+  .usage-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .sample-actions, .vault-actions { flex-direction: column; }
+  .sample-actions button, .vault-actions button, #vault-back { width: 100%; }
+  .stored-files li { gap: 10px; }
+  #vault button { padding-inline: 12px; }
+  #vault-files { font-size: 0.85rem; }
+}
 @media (max-width: 420px) {
   .flow-progress { gap: 5px; }
   .flow-progress li { font-size: 0.78rem; }
