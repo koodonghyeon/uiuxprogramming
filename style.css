@@ -562,6 +562,19 @@ footer p {
 .completion-panel { border-color: #6ee7b7; background: #153c3b; }
 .completion-mark { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #a7f3d0; color: #123a32; font-size: 1.7rem; margin-bottom: 18px; }
 .flow-reset { margin-top: 22px; }
+
+/* 추가 요청 선택과 신청 저장 상태 */
+.request-toggle { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+#subscribe .request-toggle input { flex: 0 0 22px; width: 22px; height: 22px; padding: 0; margin: 0; accent-color: #6fa6ff; }
+#subscribe .request-toggle label { margin: 0; cursor: pointer; }
+.request-fields { padding: 18px; border: 1px solid #607796; border-radius: 14px; background: #192f4d; }
+#subscribe textarea { display: block; width: 100%; min-width: 0; min-height: 130px; resize: vertical; margin-top: 12px; padding: 12px; border: 1px solid #8093af; border-radius: 10px; background: #20334f; color: white; font: inherit; line-height: 1.6; }
+#subscribe textarea:focus-visible { outline: 3px solid #729fff; outline-offset: 3px; }
+#subscribe textarea.is-error { border-color: #fda4af; background: #472c40; }
+#subscribe textarea.is-success { border-color: #6ee7b7; background: #163e3e; }
+#subscribe .submission-message { margin: 20px 0 0; padding: 14px; border: 1px solid #607796; border-radius: 10px; color: #d4e4ff; overflow-wrap: anywhere; }
+#subscribe .submission-message.is-error { color: #fecdd3; border-color: #fda4af; background: #472c40; }
+#review-request, #complete-request { white-space: pre-wrap; }
 #subscribe .flow-reset p { margin: 10px 0 0; }
 @media (max-width: 768px) {
   #features .plan-options { grid-template-columns: 1fr; }

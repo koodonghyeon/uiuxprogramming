@@ -84,7 +84,7 @@
 
       <div id="flow-input" class="flow-panel" aria-labelledby="input-title" hidden>
         <h3 id="input-title" tabindex="-1">관심 용량과 이메일을 알려주세요</h3>
-        <p class="flow-hint">두 항목 모두 필수입니다. 다음 단계에서 신청 내용을 다시 확인할 수 있습니다.</p>
+        <p class="flow-hint">용량과 이메일은 필수입니다. 원하는 파일 관리 기능이 있다면 추가 요청도 남겨주세요.</p>
         <form id="subscribe-form" novalidate>
           <div class="flow-field">
             <label for="capacity">관심 있는 저장 용량 <span>(필수)</span></label>
@@ -98,8 +98,23 @@
           </div>
           <div class="flow-field">
             <label for="email">이메일 <span>(필수)</span></label>
-            <input type="email" id="email" name="email" placeholder="name@example.com" autocomplete="email" aria-describedby="email-message" aria-invalid="false" required>
+            <input type="email" id="email" name="email" placeholder="name@example.com" autocomplete="email" aria-describedby="email-help email-message" aria-invalid="false" required>
+            <p id="email-help" class="field-message">name@example.com 형식으로 입력해 주세요.</p>
             <p id="email-message" class="field-message" aria-live="polite">소식을 받을 이메일을 입력해 주세요.</p>
+          </div>
+          <div class="flow-field">
+            <div class="request-toggle">
+              <input type="checkbox" id="include-request" name="includeRequest" aria-controls="request-fields" aria-expanded="false" aria-describedby="request-toggle-help">
+              <label for="include-request">추가 요청 남기기 <span>(선택)</span></label>
+            </div>
+            <p id="request-toggle-help" class="field-message">선택하면 원하는 파일 관리 기능이나 보관 목적을 적을 수 있습니다.</p>
+          </div>
+          <div id="request-fields" class="flow-field request-fields" hidden>
+            <label for="storage-request">보관소에 바라는 점 <span>(선택한 경우 필수)</span></label>
+            <p id="request-help" class="field-message">앞뒤 공백을 제외하고 10~200자로 적어주세요. 예: 과제 파일을 과목별로 정리하고 싶어요.</p>
+            <textarea id="storage-request" name="storageRequest" rows="4" aria-describedby="request-help request-count request-message" aria-invalid="false" disabled></textarea>
+            <p id="request-count" class="field-message">0 / 200자 · 최소 10자</p>
+            <p id="request-message" class="field-message" aria-live="polite">요청 내용을 10자 이상 입력해 주세요.</p>
           </div>
           <p id="form-message" class="form-message" aria-live="polite">용량과 이메일을 입력해 주세요.</p>
           <div class="flow-actions">
@@ -116,10 +131,13 @@
           <div><dt>관심 용량</dt><dd id="review-capacity"></dd></div>
           <div><dt>신청 이메일</dt><dd id="review-email"></dd></div>
           <div><dt>받을 소식</dt><dd>정식 출시 일정, 파일 관리 기능, 저장 용량 업데이트</dd></div>
+          <div id="review-request-row" hidden><dt>추가 요청</dt><dd id="review-request"></dd></div>
         </dl>
+        <p class="flow-hint">신청 내용은 이 브라우저에 저장됩니다.</p>
+        <p id="submission-message" class="submission-message" role="status" aria-live="polite">내용이 맞으면 ‘소식 신청하기’를 눌러주세요.</p>
         <div class="flow-actions">
           <button type="button" id="review-back" class="secondary-button">이전 단계 · 수정</button>
-          <button type="button" id="confirm-button">소식 신청하기</button>
+          <button type="submit" id="confirm-button" form="subscribe-form">소식 신청하기</button>
         </div>
       </div>
 
@@ -130,6 +148,7 @@
         <dl class="flow-summary">
           <div><dt>관심 용량</dt><dd id="complete-capacity"></dd></div>
           <div><dt>신청 이메일</dt><dd id="complete-email"></dd></div>
+          <div id="complete-request-row" hidden><dt>추가 요청</dt><dd id="complete-request"></dd></div>
         </dl>
         <p>선택한 용량으로 파일 추가와 정리를 직접 해보세요.</p>
         <div class="flow-actions">

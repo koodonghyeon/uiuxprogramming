@@ -39,14 +39,32 @@ const emailMessage = document.querySelector("#email-message");
 const formMessage = document.querySelector("#form-message");
 const reviewButton = document.querySelector("#review-button");
 const confirmButton = document.querySelector("#confirm-button");
+const requestToggle = document.querySelector("#include-request");
+const requestInput = document.querySelector("#storage-request");
+const requestMessage = document.querySelector("#request-message");
+const submissionMessage = document.querySelector("#submission-message");
+const SUBSCRIPTION_STORAGE_KEY = "data-vault.latest-subscription";
+let isSubmitting = false;
 const panels = [...document.querySelectorAll(".flow-panel")];
 const progressItems = [...document.querySelectorAll(".flow-progress li")];
 const stageNames = ["시작", "정보 입력", "확인", "완료"];
 let currentStep = 0;
-let touched = { capacity: false, email: false };
+let touched = { capacity: false, email: false, request: false };
 
-const getValues = () => ({ capacity: capacitySelect.value, email: emailInput.value.trim() });
-const isValid = () => Boolean(plans[capacitySelect.value]) && Boolean(emailInput.value.trim()) && emailInput.validity.valid;
+const getValues = () => ({ capacity: capacitySelect.value, email: emailInput.value.trim(), request: requestToggle.checked ? requestInput.value.trim() : "" });
+const requestLength = () => Array.from(requestInput.value.trim()).length;
+const isRequestValid = () => !requestToggle.checked || (requestLength() >= 10 && requestLength() <= 200);
+const focusFirstError = () => {
+  const field = !plans[capacitySelect.value] ? capacitySelect : (!emailInput.value.trim() || !emailInput.validity.valid) ? emailInput : requestInput;
+  field.focus();
+};
+const syncRequestField = () => {
+  const enabled = requestToggle.checked;
+  document.querySelector("#request-fields").hidden = !enabled;
+  requestInput.disabled = !enabled;
+  requestInput.required = enabled;
+  requestToggle.setAttribute("aria-expanded", String(enabled));
+};
 
 const showStep = (step, moveFocus = true) => {
   currentStep = step;
@@ -57,7 +75,7 @@ const showStep = (step, moveFocus = true) => {
     item.classList.toggle("is-complete", index < step || step === 3);
   });
   document.querySelector("#flow-status").textContent = `${step + 1} / 4단계 · ${stageNames[step]}`;
-  document.querySelector(".flow-reset").hidden = step === 3 || (step === 0 && !touched.capacity && !touched.email);
+  document.querySelector(".flow-reset").hidden = step === 3 || (step === 0 && !touched.capacity && !touched.email && !touched.request && !requestToggle.checked);
   if (moveFocus) panels[step].querySelector("h3").focus();
 };
 
@@ -71,7 +89,7 @@ const setFieldState = (field, message, type, text) => {
 };
 
 const validate = (showAllErrors = false) => {
-  if (showAllErrors) touched = { capacity: true, email: true };
+  if (showAllErrors) touched = { capacity: true, email: true, request: requestToggle.checked };
   const { capacity, email } = getValues();
   const plan = plans[capacity];
   const validEmail = Boolean(email) && emailInput.validity.valid;
@@ -81,8 +99,15 @@ const validate = (showAllErrors = false) => {
   setFieldState(emailInput, emailMessage,
     validEmail ? "success" : touched.email ? "error" : "default",
     validEmail ? "사용 가능한 이메일 형식입니다." : touched.email ? (email ? "이메일 형식을 확인해 주세요. 예: name@example.com" : "소식을 받을 이메일을 입력해 주세요. 예: name@example.com") : "소식을 받을 이메일을 입력해 주세요.");
-  const valid = Boolean(plan) && validEmail;
-  const hasError = (!plan && touched.capacity) || (!validEmail && touched.email);
+  const length = requestLength();
+  const validRequest = isRequestValid();
+  document.querySelector("#request-count").textContent = `${length} / 200자 · 최소 10자`;
+  const requestError = requestToggle.checked && !validRequest && (touched.request || length > 0);
+  setFieldState(requestInput, requestMessage,
+    requestError ? "error" : requestToggle.checked && validRequest ? "success" : "default",
+    requestError ? (length > 200 ? `200자 이내로 줄여주세요. 현재 ${length}자입니다.` : `10자 이상 적어주세요. ${10 - length}자 더 입력하면 됩니다.`) : requestToggle.checked && validRequest ? "입력 조건을 충족했습니다." : "요청 내용을 10자 이상 입력해 주세요.");
+  const valid = Boolean(plan) && validEmail && validRequest;
+  const hasError = (!plan && touched.capacity) || (!validEmail && touched.email) || requestError;
   formMessage.textContent = valid ? "입력이 완료되었습니다. 다음 단계에서 내용을 확인해 주세요." : hasError ? "표시된 항목을 수정하면 다음 단계로 이동할 수 있습니다." : "용량과 이메일을 입력해 주세요.";
   formMessage.classList.toggle("is-error", hasError);
   formMessage.classList.toggle("is-success", valid);
@@ -93,7 +118,7 @@ const validate = (showAllErrors = false) => {
 };
 
 document.querySelector("#start-button").addEventListener("click", () => {
-  if (currentStep === 0) showStep(1);
+  if (currentStep === 0 && !isSubmitting) showStep(1);
 });
 capacitySelect.addEventListener("change", () => {
   touched.capacity = true;
@@ -103,51 +128,97 @@ emailInput.addEventListener("input", () => {
   touched.email = true;
   validate();
 });
+requestToggle.addEventListener("change", () => {
+  touched.request = false;
+  syncRequestField();
+  validate();
+});
+requestInput.addEventListener("input", () => {
+  touched.request = true;
+  validate();
+});
 document.querySelector("#input-back").addEventListener("click", () => {
-  if (currentStep === 1) showStep(0);
+  if (currentStep === 1 && !isSubmitting) showStep(0);
 });
 document.querySelector("#review-back").addEventListener("click", () => {
-  if (currentStep === 2) showStep(1);
+  if (currentStep === 2 && !isSubmitting) showStep(1);
 });
 
-subscribeForm.addEventListener("submit", (event) => {
+subscribeForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (currentStep !== 1) return;
+  if (isSubmitting || (currentStep !== 1 && currentStep !== 2)) return;
   if (!validate(true)) {
-    (plans[capacitySelect.value] ? emailInput : capacitySelect).focus();
+    showStep(1, false);
+    focusFirstError();
     return;
   }
   const values = getValues();
+  if (currentStep === 2) {
+    await submitSubscription(values);
+    return;
+  }
   // textContent로 사용자 입력을 문자열로만 표시합니다.
   document.querySelector("#review-capacity").textContent = plans[values.capacity].label;
   document.querySelector("#review-email").textContent = values.email;
+  document.querySelector("#review-request").textContent = values.request;
+  document.querySelector("#review-request-row").hidden = !requestToggle.checked;
+  submissionMessage.textContent = "내용이 맞으면 ‘소식 신청하기’를 눌러주세요.";
+  submissionMessage.classList.remove("is-error");
+  confirmButton.textContent = "소식 신청하기";
   showStep(2);
 });
 
-confirmButton.addEventListener("click", () => {
-  if (currentStep !== 2) return;
-  if (!isValid()) {
-    showStep(1);
-    validate(true);
-    (plans[capacitySelect.value] ? emailInput : capacitySelect).focus();
-    return;
+const setSubmitting = (busy) => {
+  isSubmitting = busy;
+  subscribeForm.setAttribute("aria-busy", String(busy));
+  document.querySelector("#flow-review").setAttribute("aria-busy", String(busy));
+  for (const button of [confirmButton, document.querySelector("#review-back"), document.querySelector("#reset-progress")]) button.disabled = busy;
+};
+
+const saveSubscription = async (values) => {
+  // 진행 상태를 보여준 뒤 최근 신청 한 건을 저장합니다. 저장이 차단되면 예외가 발생합니다.
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify({ ...values, savedAt: new Date().toISOString() }));
+};
+
+const submitSubscription = async (values) => {
+  setSubmitting(true);
+  confirmButton.textContent = "신청 저장 중…";
+  submissionMessage.textContent = "신청 내용을 저장하고 있습니다. 잠시만 기다려주세요.";
+  submissionMessage.classList.remove("is-error");
+  try {
+    await saveSubscription(values);
+    document.querySelector("#complete-capacity").textContent = plans[values.capacity].label;
+    document.querySelector("#complete-email").textContent = values.email;
+    document.querySelector("#complete-request").textContent = values.request;
+    document.querySelector("#complete-request-row").hidden = !values.request;
+    document.querySelector("#complete-message").textContent = `${values.email} 주소로 소식 신청이 완료되었습니다.`;
+    confirmButton.textContent = "신청 완료";
+    showStep(3);
+  } catch {
+    submissionMessage.textContent = "신청 내용을 저장하지 못했습니다. 입력한 내용은 유지됩니다. 브라우저의 사이트 저장 권한을 확인한 뒤 다시 시도해 주세요.";
+    submissionMessage.classList.add("is-error");
+    confirmButton.textContent = "다시 신청하기";
+  } finally {
+    setSubmitting(false);
+    confirmButton.disabled = currentStep === 3;
   }
-  const values = getValues();
-  document.querySelector("#complete-capacity").textContent = plans[values.capacity].label;
-  document.querySelector("#complete-email").textContent = values.email;
-  document.querySelector("#complete-message").textContent = `${values.email} 주소로 소식 신청이 완료되었습니다.`;
-  confirmButton.disabled = true;
-  confirmButton.textContent = "신청 완료";
-  showStep(3);
-});
+};
 
 const restartFlow = () => {
+  if (isSubmitting) return;
   subscribeForm.reset();
+  syncRequestField();
+  setSubmitting(false);
+  submissionMessage.textContent = "내용이 맞으면 ‘소식 신청하기’를 눌러주세요.";
+  submissionMessage.classList.remove("is-error");
+  document.querySelector("#review-request-row").hidden = true;
+  document.querySelector("#complete-request-row").hidden = true;
   resetVault();
   document.querySelector("#vault").hidden = true;
   document.querySelector("#open-vault").setAttribute("aria-expanded", "false");
-  touched = { capacity: false, email: false };
-  for (const id of ["review-capacity", "review-email", "complete-capacity", "complete-email", "complete-message"]) {
+  touched = { capacity: false, email: false, request: false };
+  for (const id of ["review-capacity", "review-email", "review-request", "complete-capacity", "complete-email", "complete-request", "complete-message"]) {
     document.getElementById(id).textContent = "";
   }
   confirmButton.disabled = false;
