@@ -195,6 +195,7 @@ const submitSubscription = async (values) => {
     document.querySelector("#complete-message").textContent = `${values.email} 주소로 소식 신청이 완료되었습니다.`;
     confirmButton.textContent = "신청 완료";
     showStep(3);
+    if (!vault.hidden) prepareVault();
   } catch {
     submissionMessage.textContent = "신청 내용을 저장하지 못했습니다. 입력한 내용은 유지됩니다. 브라우저의 사이트 저장 권한을 확인한 뒤 다시 시도해 주세요.";
     submissionMessage.classList.add("is-error");
@@ -225,6 +226,7 @@ const restartFlow = () => {
   confirmButton.textContent = "소식 신청하기";
   validate();
   showStep(0);
+  navigateToSection("subscribe", "replace", false);
 };
 document.querySelector("#restart-button").addEventListener("click", restartFlow);
 document.querySelector("#reset-progress").addEventListener("click", restartFlow);
@@ -241,10 +243,21 @@ const resetConfirmation = document.querySelector("#vault-reset-confirm");
 const exampleFiles = {
   video: { name: "예시 동영상.mp4", size: 6_000_000_000, lastModified: 0, sample: true },
   photos: { name: "예시 사진 모음.zip", size: 5_000_000_000, lastModified: 0, sample: true },
+  document: { name: "예시 과제.pdf", size: 1_000_000, lastModified: 0, sample: true },
+  image: { name: "예시 여행 사진.jpg", size: 2_000_000, lastModified: 0, sample: true },
 };
 let storedFiles = [];
 let pendingFiles = [];
 let nextFileId = 1;
+let activeFilter = "all";
+const filterLabels = { all: "전체", document: "문서", image: "사진", video: "동영상", other: "기타" };
+const fileCategory = (file) => {
+  const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
+  if (["pdf", "txt", "md", "doc", "docx", "hwp", "hwpx", "xls", "xlsx", "ppt", "pptx", "csv"].includes(extension)) return "document";
+  if (["jpg", "jpeg", "png", "gif", "webp", "svg", "avif", "heic", "bmp"].includes(extension)) return "image";
+  if (["mp4", "mov", "webm", "mkv", "avi", "m4v"].includes(extension)) return "video";
+  return "other";
+};
 const usedBytes = () => storedFiles.reduce((total, file) => total + file.size, 0);
 // 단위는 십진수로 통일: 1GB = 1,000,000,000 B, 1TB = 1,000GB.
 const limitBytes = () => Number(capacitySelect.value) * 1_000_000_000;
@@ -278,16 +291,23 @@ const renderVault = () => {
   document.querySelector(".usage-card").classList.toggle("is-near-full", limit > 0 && used >= limit * 0.9);
   document.querySelector("#file-count").textContent = `${storedFiles.length}개`;
   document.querySelector("#vault-empty").hidden = storedFiles.length > 0;
+  const visibleFiles = storedFiles.filter((file) => activeFilter === "all" || fileCategory(file) === activeFilter);
+  document.querySelectorAll("[data-filter]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.filter === activeFilter));
+  });
+  document.querySelector("#filter-results").textContent = `전체 ${storedFiles.length}개 중 ${visibleFiles.length}개 표시 · ${filterLabels[activeFilter]}`;
+  document.querySelector("#filter-empty").hidden = storedFiles.length === 0 || visibleFiles.length > 0;
+  document.querySelector("#filter-empty-message").textContent = `‘${filterLabels[activeFilter]}’에 해당하는 파일이 없습니다`;
 
   storedList.replaceChildren();
-  storedFiles.forEach((file) => {
+  visibleFiles.forEach((file) => {
     const item = document.createElement("li");
     const info = document.createElement("div");
     const name = document.createElement("strong");
     const size = document.createElement("span");
     const remove = document.createElement("button");
     name.textContent = file.name;
-    size.textContent = `${formatBytes(file.size)}${file.sample ? " · 예시 파일" : ""}`;
+    size.textContent = `${filterLabels[fileCategory(file)]} · ${formatBytes(file.size)}${file.sample ? " · 예시 파일" : ""}`;
     info.append(name, size);
     remove.type = "button";
     remove.className = "vault-secondary";
@@ -315,6 +335,7 @@ const resetVault = () => {
   storedFiles = [];
   pendingFiles = [];
   nextFileId = 1;
+  activeFilter = "all";
   fileInput.value = "";
   resetConfirmation.hidden = true;
   setVaultFeedback("default", "파일을 선택하거나 예시 파일로 시작해 보세요.");
@@ -323,17 +344,14 @@ const resetVault = () => {
 
 document.querySelector("#open-vault").addEventListener("click", () => {
   if (currentStep !== 3) return;
-  vault.hidden = false;
-  document.querySelector("#open-vault").setAttribute("aria-expanded", "true");
-  renderVault();
-  document.querySelector("#vault-title").focus();
+  navigateToSection("vault");
 });
 document.querySelector("#vault-back").addEventListener("click", () => {
   vault.hidden = true;
   resetConfirmation.hidden = true;
   const openButton = document.querySelector("#open-vault");
   openButton.setAttribute("aria-expanded", "false");
-  openButton.focus();
+  navigateToSection("subscribe");
 });
 
 fileInput.addEventListener("change", () => {
@@ -366,7 +384,7 @@ document.querySelector("#cancel-files").addEventListener("click", () => {
 
 document.querySelector("#vault-form").addEventListener("submit", (event) => {
   event.preventDefault();
-  if (currentStep !== 3 || vault.hidden) return;
+  if (currentStep !== 3 || vault.hidden || document.querySelector("#vault-content").hidden) return;
   resetConfirmation.hidden = true;
   let error = "";
   const keys = new Set(storedFiles.map(fileKey));
@@ -395,7 +413,7 @@ document.querySelector("#vault-form").addEventListener("submit", (event) => {
   pendingFiles = [];
   fileInput.value = "";
   renderVault();
-  setVaultFeedback("success", `${count}개 파일을 보관함에 추가했습니다. 목록과 남은 용량을 확인하세요.`);
+  setVaultFeedback("success", `${count}개 파일을 보관함에 추가했습니다. 목록과 남은 용량을 확인하세요.${activeFilter !== "all" ? " 현재 필터와 다른 종류는 ‘전체’에서 볼 수 있습니다." : ""}`);
 });
 
 storedList.addEventListener("click", (event) => {
@@ -408,7 +426,7 @@ storedList.addEventListener("click", (event) => {
   renderVault();
   setVaultFeedback("success", `‘${removed.name}’ 항목을 삭제했습니다. ${formatBytes(removed.size)}의 공간이 확보되었습니다.`);
   const remainingButtons = storedList.querySelectorAll("button");
-  (remainingButtons[Math.min(index, remainingButtons.length - 1)] || fileInput).focus();
+  (remainingButtons[Math.min(index, remainingButtons.length - 1)] || (storedFiles.length ? document.querySelector("#show-all-files") : fileInput)).focus();
 });
 document.querySelector("#reset-vault").addEventListener("click", () => {
   resetConfirmation.hidden = false;
@@ -424,3 +442,134 @@ document.querySelector("#confirm-vault-reset").addEventListener("click", () => {
   setVaultFeedback("success", "보관함 체험을 초기화했습니다. 파일을 다시 선택해 시작하세요.");
   fileInput.focus();
 });
+
+document.querySelectorAll("[data-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    activeFilter = button.dataset.filter;
+    renderVault();
+  });
+});
+document.querySelector("#show-all-files").addEventListener("click", () => {
+  activeFilter = "all";
+  renderVault();
+  document.querySelector('[data-filter="all"]').focus();
+});
+
+// 메뉴 이동과 화면 위치를 URL 해시로 연결합니다.
+const menuToggle = document.querySelector("#menu-toggle");
+const mainMenu = document.querySelector("#main-menu");
+const navLinks = [...mainMenu.querySelectorAll("a")];
+const navSections = navLinks.map((link) => document.querySelector(link.getAttribute("href")));
+const compactMenu = window.matchMedia("(max-width: 768px)");
+const navigationBar = document.querySelector(".site-navigation");
+let menuOpen = false;
+let navigating = false;
+let navigationFrame = 0;
+let scrollFrame = 0;
+
+function updateMenu(open = false) {
+  menuOpen = compactMenu.matches && open;
+  mainMenu.hidden = compactMenu.matches && !menuOpen;
+  menuToggle.hidden = !compactMenu.matches;
+  menuToggle.textContent = menuOpen ? "메뉴 닫기" : "메뉴 열기";
+  menuToggle.setAttribute("aria-expanded", String(!compactMenu.matches || menuOpen));
+  document.documentElement.style.setProperty("--navigation-offset", `${navigationBar.offsetHeight + 18}px`);
+}
+
+function markCurrentMenu(id) {
+  navLinks.forEach((link) => {
+    if (link.hash === `#${id}`) link.setAttribute("aria-current", "location");
+    else link.removeAttribute("aria-current");
+  });
+  const activeLink = navLinks.find((link) => link.hash === `#${id}`);
+  document.querySelector("#current-location").textContent = `현재 위치: ${activeLink.textContent}`;
+}
+
+function prepareVault() {
+  const unlocked = currentStep === 3;
+  vault.hidden = false;
+  document.querySelector("#vault-locked").hidden = unlocked;
+  document.querySelector("#vault-content").hidden = !unlocked;
+  document.querySelector("#vault-back").textContent = unlocked ? "신청 완료로 돌아가기" : "소식 신청으로 이동";
+  document.querySelector("#open-vault").setAttribute("aria-expanded", String(unlocked));
+  if (unlocked) renderVault();
+}
+
+function navigateToSection(id, historyMode = "push", moveFocus = true) {
+  if (!navSections.some((section) => section.id === id)) id = "about";
+  if (id === "vault") prepareVault();
+  const section = document.getElementById(id);
+  updateMenu(false);
+  markCurrentMenu(id);
+  if (location.hash !== `#${id}` && historyMode !== "none") {
+    history[historyMode === "replace" ? "replaceState" : "pushState"](null, "", `#${id}`);
+  }
+  navigating = true;
+  cancelAnimationFrame(navigationFrame);
+  navigationFrame = requestAnimationFrame(() => {
+    const top = window.scrollY + section.getBoundingClientRect().top - navigationBar.offsetHeight - 18;
+    window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    if (moveFocus) {
+      const heading = section.querySelector("h2");
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+    navigationFrame = requestAnimationFrame(() => { navigating = false; });
+  });
+}
+
+// 일반 앵커도 같은 이동 규칙을 사용합니다. Ctrl/Command 클릭은 브라우저 동작을 유지합니다.
+document.addEventListener("click", (event) => {
+  const link = event.target.closest('a[href^="#"]');
+  if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  const id = link.getAttribute("href").slice(1);
+  if (!navSections.some((section) => section.id === id)) return;
+  event.preventDefault();
+  navigateToSection(id);
+});
+menuToggle.addEventListener("click", () => updateMenu(!menuOpen));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && menuOpen) {
+    updateMenu(false);
+    menuToggle.focus();
+  }
+});
+compactMenu.addEventListener("change", () => updateMenu(false));
+new ResizeObserver(() => {
+  document.documentElement.style.setProperty("--navigation-offset", `${navigationBar.offsetHeight + 18}px`);
+}).observe(navigationBar);
+
+function restoreLocation() {
+  const id = location.hash.slice(1);
+  if (!id) {
+    // 첫 방문에는 서비스 이름이 있는 페이지 맨 위부터 보여줍니다.
+    updateMenu(false);
+    markCurrentMenu("about");
+    window.scrollTo({ top: 0, behavior: "instant" });
+    return;
+  }
+  navigateToSection(id, "replace", false);
+}
+window.addEventListener("popstate", restoreLocation);
+window.addEventListener("hashchange", restoreLocation);
+window.addEventListener("pageshow", restoreLocation);
+// 사용자가 직접 스크롤한 위치도 현재 메뉴와 새로고침 후 목적지에 반영합니다.
+window.addEventListener("scroll", () => {
+  if (scrollFrame || navigating || menuOpen) return;
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0;
+    if (navigating || menuOpen) return;
+    const visible = navSections.filter((section) => !section.hidden);
+    const marker = navigationBar.offsetHeight + 40;
+    let current = visible[0];
+    visible.forEach((section) => {
+      if (section.getBoundingClientRect().top <= marker) current = section;
+    });
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 3) current = visible[visible.length - 1];
+    markCurrentMenu(current.id);
+    if (location.hash !== `#${current.id}`) history.replaceState(null, "", `#${current.id}`);
+  });
+}, { passive: true });
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+updateMenu(false);
+restoreLocation();
