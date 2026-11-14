@@ -5,7 +5,8 @@
   --blue-dark: #1d4ed8;
   --blue-soft: #eff6ff;
   --text: #172033;
-  --muted: #667085;
+  --muted: #536176;
+  --focus-ring: #123b77;
   --line: #e4eaf2;
   --surface: #ffffff;
   --background: #f5f7fb;
@@ -19,6 +20,13 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* 밝은 영역은 진한 테두리, 어두운 영역은 노란 테두리로 초점을 표시합니다. */
+body :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
+#subscribe, .site-navigation { --focus-ring: #ffe082; }
+main :is(a, button, input, select, textarea, summary, [tabindex]) { scroll-margin-top: var(--navigation-offset, 120px); scroll-margin-bottom: 24px; }
+.skip-link { position: fixed; top: 12px; left: 12px; z-index: 100; transform: translateY(-180%); padding: 12px 18px; border: 2px solid #123b77; border-radius: 8px; background: white; color: #123b77; font-weight: 700; }
+.skip-link:focus { transform: translateY(0); }
 
 body {
   margin: 0;
@@ -62,7 +70,6 @@ header > p {
 #primary-nav a[aria-current="location"] { border-color: #a9c9ff; background: #e6efff; color: #123b77; font-weight: 800; text-decoration: underline; text-underline-offset: 5px; }
 #current-location { max-width: 1080px; margin: 6px auto 0; color: #c1d3ee; font-size: 0.8rem; }
 #menu-toggle { width: 100%; min-height: 48px; padding: 10px 16px; border: 1px solid #8093af; border-radius: 10px; background: #243d60; color: white; font: inherit; font-weight: 700; cursor: pointer; }
-#primary-nav :focus-visible { outline: 3px solid #93b5ff; outline-offset: 3px; }
 
 main {
   width: calc(100% - 40px);
@@ -104,7 +111,7 @@ section > h2 {
   box-shadow: var(--shadow);
 }
 
-#about > h2 {
+#about > .about-eyebrow {
   grid-area: eyebrow;
   align-self: end;
   margin: 0;
@@ -114,7 +121,7 @@ section > h2 {
   letter-spacing: 0.08em;
 }
 
-#about > h3 {
+#about > h2 {
   grid-area: title;
   margin: 8px 0 0;
   color: var(--navy);
@@ -181,7 +188,7 @@ section > h2 {
   content: "";
 }
 
-#features h3 {
+#features h3, #features h4 {
   margin: 0 0 8px;
   color: var(--navy);
   font-size: 1.2rem;
@@ -253,9 +260,8 @@ section > h2 {
   min-width: 0;
   height: 52px;
   padding: 0 17px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #8093af;
   border-radius: 12px;
-  outline: none;
   background: rgba(255, 255, 255, 0.09);
   color: #ffffff;
   font: inherit;
@@ -263,7 +269,8 @@ section > h2 {
 }
 
 #subscribe input::placeholder {
-  color: rgba(255, 255, 255, 0.48);
+  color: #c2cee1;
+  opacity: 1;
 }
 
 #subscribe input:focus {
@@ -296,7 +303,7 @@ section > h2 {
 }
 
 #subscribe button:hover {
-  background: #3974ec;
+  background: var(--blue-dark);
   box-shadow: 0 10px 26px rgba(37, 99, 235, 0.35);
   transform: translateY(-1px);
 }
@@ -313,7 +320,8 @@ section > h2 {
 [hidden] { display: none !important; }
 .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 28px; padding: 6px; border-radius: 14px; background: #edf2f9; }
 .tabs button { min-width: 0; min-height: 48px; padding: 10px 8px; border: 0; border-radius: 10px; background: transparent; color: #46566e; font: inherit; font-weight: 700; cursor: pointer; }
-.tabs button[aria-selected="true"] { background: var(--blue); color: white; box-shadow: 0 4px 12px #2563eb26; }
+.tabs button[aria-selected="true"] { background: var(--blue); color: white; box-shadow: 0 4px 12px #2563eb26; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.tabs + .tab-status { margin: -12px 0 22px; font-size: 0.9rem; font-weight: 700; }
 .tabs button:hover:not([aria-selected="true"]) { background: #dce7f8; }
 .tab-panel { overflow-wrap: anywhere; }
 #features .panel-intro { margin-bottom: 22px; }
@@ -331,7 +339,6 @@ section > h2 {
 #features .guide-list li { min-height: 0; padding: 16px; overflow: visible; }
 #features .guide-list li::after { content: none; }
 .subscribe-intro { margin: -8px 0 24px; color: #c2cee1; }
-button:focus-visible, select:focus-visible, .tab-panel:focus-visible { outline: 3px solid #729fff; outline-offset: 4px; }
 .form-message { overflow-wrap: anywhere; }
 @media (max-width: 420px) {
   .tabs { gap: 3px; padding: 4px; }
@@ -357,11 +364,6 @@ button:focus-visible, select:focus-visible, .tab-panel:focus-visible { outline: 
   font-weight: 700;
 }
 
-nav a:focus-visible,
-#subscribe button:focus-visible {
-  outline: 3px solid #93b5ff;
-  outline-offset: 3px;
-}
 
 footer {
   padding: 28px 24px;
@@ -506,9 +508,7 @@ footer p {
 .flow-progress li.is-complete { border-color: #509c8c; color: #a7f3d0; }
 .flow-status { margin: 0 0 22px; color: #b4cfff; font-size: 0.9rem; }
 .flow-panel { min-width: 0; padding: 24px; border: 1px solid #3d4f6c; border-radius: 18px; background: #142640; overflow-wrap: anywhere; }
-.flow-panel h3 { margin: 0 0 12px; font-size: 1.4rem; line-height: 1.4; scroll-margin-top: var(--navigation-offset, 120px); }
-.flow-panel h3:focus { outline: none; }
-.flow-panel h3:focus-visible { outline: 2px solid #93b5ff; outline-offset: 5px; }
+.flow-panel h3 { margin: 0 0 12px; font-size: 1.4rem; line-height: 1.4; }
 .flow-panel p { margin: 0 0 18px; }
 #subscribe .flow-hint { color: #bdcbe0; font-size: 0.9rem; }
 #subscribe form { display: block; }
@@ -544,7 +544,6 @@ footer p {
 #subscribe .request-toggle label { margin: 0; cursor: pointer; }
 .request-fields { padding: 18px; border: 1px solid #607796; border-radius: 14px; background: #192f4d; }
 #subscribe textarea { display: block; width: 100%; min-width: 0; min-height: 130px; resize: vertical; margin-top: 12px; padding: 12px; border: 1px solid #8093af; border-radius: 10px; background: #20334f; color: white; font: inherit; line-height: 1.6; }
-#subscribe textarea:focus-visible { outline: 3px solid #729fff; outline-offset: 3px; }
 #subscribe textarea.is-error { border-color: #fda4af; background: #472c40; }
 #subscribe textarea.is-success { border-color: #6ee7b7; background: #163e3e; }
 #subscribe .submission-message { margin: 20px 0 0; padding: 14px; border: 1px solid #607796; border-radius: 10px; color: #d4e4ff; overflow-wrap: anywhere; }
@@ -586,7 +585,6 @@ footer p {
 #vault-files { display: block; width: 100%; min-width: 0; padding: 10px; border: 1px solid #aab7c9; border-radius: 12px; font: inherit; background: #f8fafc; }
 #vault-files::file-selector-button { min-height: 44px; margin-right: 12px; padding: 8px 12px; border: 0; border-radius: 8px; background: #dce8fb; color: #163b75; font: inherit; cursor: pointer; }
 #vault-files[aria-invalid="true"] { border-color: #c52f45; background: #fff5f6; }
-#vault-files:focus-visible, .sample-files summary:focus-visible, #vault-title:focus-visible { outline: 3px solid #729fff; outline-offset: 4px; }
 .sample-files { margin: 20px 0; padding: 16px; border: 1px dashed #afbed3; border-radius: 12px; }
 .sample-files summary { cursor: pointer; min-height: 28px; font-weight: 700; }
 .sample-files p { color: #5b697d; font-size: 0.9rem; }
@@ -603,7 +601,6 @@ footer p {
 #vault .file-filters button { background: white; color: #344054; border-color: #aab7c9; }
 #vault .file-filters button:hover { background: #edf3fc; }
 #vault .file-filters button[aria-pressed="true"] { background: var(--blue); color: white; border-color: var(--blue); text-decoration: underline; text-underline-offset: 4px; }
-#vault .file-filters button:focus-visible { outline: 3px solid #729fff; outline-offset: 3px; }
 .filter-results { margin: 12px 0; font-weight: 700; color: #344054; }
 #show-all-files { margin-top: 16px; }
 .vault-empty { margin-top: 18px; padding: 30px 20px; border: 1px dashed #afbed3; border-radius: 14px; text-align: center; }

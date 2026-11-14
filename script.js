@@ -7,6 +7,7 @@ const activateTab = (selectedTab) => {
     tab.tabIndex = selected ? 0 : -1;
     document.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;
   });
+  document.querySelector("#tab-status").textContent = `선택한 안내: ${selectedTab.textContent}`;
 };
 
 tabs.forEach((tab, index) => {
@@ -85,7 +86,7 @@ const setFieldState = (field, message, type, text) => {
     element.classList.toggle("is-error", type === "error");
     element.classList.toggle("is-success", type === "success");
   }
-  message.textContent = text;
+  message.textContent = type === "error" ? `입력 오류: ${text}` : text;
 };
 
 const validate = (showAllErrors = false) => {
@@ -287,7 +288,8 @@ const renderVault = () => {
   meter.value = used;
   const percentage = limit ? used / limit * 100 : 0;
   const percentText = percentage > 0 && percentage < 0.01 ? "0.01% 미만" : `${Number(percentage.toFixed(2))}%`;
-  document.querySelector("#remaining-text").textContent = `남은 용량 ${formatBytes(Math.max(0, limit - used))} · ${percentText} 사용`;
+  const spaceNotice = limit > 0 && used >= limit ? " · 저장 공간이 가득 찼습니다. 파일을 삭제하면 공간을 확보할 수 있습니다." : limit > 0 && used >= limit * 0.9 ? " · 저장 공간이 거의 찼습니다. 필요 없는 파일을 정리해 주세요." : "";
+  document.querySelector("#remaining-text").textContent = `남은 용량 ${formatBytes(Math.max(0, limit - used))} · ${percentText} 사용${spaceNotice}`;
   document.querySelector(".usage-card").classList.toggle("is-near-full", limit > 0 && used >= limit * 0.9);
   document.querySelector("#file-count").textContent = `${storedFiles.length}개`;
   document.querySelector("#vault-empty").hidden = storedFiles.length > 0;
@@ -419,6 +421,7 @@ document.querySelector("#vault-form").addEventListener("submit", (event) => {
 storedList.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-file-id]");
   if (!button) return;
+  const visibleIndex = [...storedList.querySelectorAll("button")].indexOf(button);
   const index = storedFiles.findIndex((file) => file.id === Number(button.dataset.fileId));
   if (index < 0) return;
   const [removed] = storedFiles.splice(index, 1);
@@ -426,7 +429,7 @@ storedList.addEventListener("click", (event) => {
   renderVault();
   setVaultFeedback("success", `‘${removed.name}’ 항목을 삭제했습니다. ${formatBytes(removed.size)}의 공간이 확보되었습니다.`);
   const remainingButtons = storedList.querySelectorAll("button");
-  (remainingButtons[Math.min(index, remainingButtons.length - 1)] || (storedFiles.length ? document.querySelector("#show-all-files") : fileInput)).focus();
+  (remainingButtons[Math.min(visibleIndex, remainingButtons.length - 1)] || (storedFiles.length ? document.querySelector("#show-all-files") : fileInput)).focus();
 });
 document.querySelector("#reset-vault").addEventListener("click", () => {
   resetConfirmation.hidden = false;
@@ -468,12 +471,15 @@ let navigationFrame = 0;
 let scrollFrame = 0;
 
 function updateMenu(open = false) {
+  const previousFocus = document.activeElement;
   menuOpen = compactMenu.matches && open;
   mainMenu.hidden = compactMenu.matches && !menuOpen;
   menuToggle.hidden = !compactMenu.matches;
   menuToggle.textContent = menuOpen ? "메뉴 닫기" : "메뉴 열기";
   menuToggle.setAttribute("aria-expanded", String(!compactMenu.matches || menuOpen));
   document.documentElement.style.setProperty("--navigation-offset", `${navigationBar.offsetHeight + 18}px`);
+  if (mainMenu.hidden && mainMenu.contains(previousFocus)) menuToggle.focus();
+  else if (menuToggle.hidden && previousFocus === menuToggle) mainMenu.querySelector('[aria-current="location"]').focus();
 }
 
 function markCurrentMenu(id) {
@@ -528,6 +534,19 @@ document.addEventListener("click", (event) => {
   navigateToSection(id);
 });
 menuToggle.addEventListener("click", () => updateMenu(!menuOpen));
+navigationBar.addEventListener("focusout", (event) => {
+  if (menuOpen && event.relatedTarget && !navigationBar.contains(event.relatedTarget)) updateMenu(false);
+});
+// 역방향 Tab 이동이나 오류 항목으로 이동할 때도 고정 메뉴 아래에 초점을 보여줍니다.
+document.querySelector("main").addEventListener("focusin", (event) => {
+  requestAnimationFrame(() => {
+    const target = event.target;
+    if (document.activeElement !== target) return;
+    const rect = target.getBoundingClientRect();
+    const menuBottom = navigationBar.getBoundingClientRect().bottom;
+    if (rect.top < menuBottom + 12) window.scrollBy({ top: rect.top - menuBottom - 12, behavior: "instant" });
+  });
+});
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && menuOpen) {
     updateMenu(false);

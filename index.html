@@ -9,6 +9,7 @@
   <script src="./script.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#about">본문 바로가기</a>
   <header>
     <h1>데이터 보관소</h1>
     <p>소중한 사진부터 과제 파일까지, 한곳에서 간편하게.</p>
@@ -27,8 +28,8 @@
   </div>
   <main>
     <section id="about">
-      <h2>나의 파일을 위한 공간</h2>
-      <h3>데이터 보관 서비스</h3>
+      <p class="about-eyebrow">나의 파일을 위한 공간</p>
+      <h2>데이터 보관 서비스</h2>
       <p>흩어진 파일을 모으고 필요한 용량을 선택하세요. 나만의 보관소를 쉽고 편리하게 관리하는 서비스를 준비하고 있습니다.</p>
       <img src="./assets/images/service.jpg" alt="회로판 위의 자물쇠로 표현한 데이터 보호 이미지">
     </section>
@@ -41,12 +42,13 @@
         <button type="button" id="tab-guide" role="tab" aria-selected="false" aria-controls="panel-guide" tabindex="-1">이용 안내</button>
       </div>
 
+      <p id="tab-status" class="tab-status" role="status">선택한 안내: 파일 보관</p>
       <div id="panel-storage" class="tab-panel" role="tabpanel" aria-labelledby="tab-storage" tabindex="0">
         <h3>파일마다 알맞은 자리를</h3>
         <p class="panel-intro">데이터 보관소에서 제공할 기능을 미리 살펴보세요.</p>
         <ul>
-          <li><h3>폴더별 정리</h3><p>사진, 문서, 과제 파일을 폴더로 나누어 필요한 자료를 빠르게 찾습니다.</p></li>
-          <li><h3>파일 보관함 체험</h3><p>소식 신청 후 파일을 추가·삭제하고 사용 용량이 어떻게 바뀌는지 확인합니다.</p></li>
+          <li><h4>폴더별 정리</h4><p>사진, 문서, 과제 파일을 폴더로 나누어 필요한 자료를 빠르게 찾습니다.</p></li>
+          <li><h4>파일 보관함 체험</h4><p>소식 신청 후 파일을 추가·삭제하고 사용 용량이 어떻게 바뀌는지 확인합니다.</p></li>
         </ul>
       </div>
 
@@ -54,9 +56,9 @@
         <h3>나에게 필요한 저장 공간은?</h3>
         <p class="panel-intro">보관할 자료에 맞는 용량을 골라보세요.</p>
         <ul class="plan-options">
-          <li><h3>10GB</h3><p>문서와 과제 파일을 가볍게 모아두고 싶을 때</p></li>
-          <li><h3>100GB</h3><p>사진과 일상 기록을 여유 있게 정리하고 싶을 때</p></li>
-          <li><h3>1TB</h3><p>동영상과 대용량 프로젝트 자료를 보관하고 싶을 때</p></li>
+          <li><h4>10GB</h4><p>문서와 과제 파일을 가볍게 모아두고 싶을 때</p></li>
+          <li><h4>100GB</h4><p>사진과 일상 기록을 여유 있게 정리하고 싶을 때</p></li>
+          <li><h4>1TB</h4><p>동영상과 대용량 프로젝트 자료를 보관하고 싶을 때</p></li>
         </ul>
         <a class="flow-link" href="#subscribe">관심 용량을 선택하고 출시 소식 받기 →</a>
       </div>
@@ -225,10 +227,10 @@
       </div>
       <p class="vault-note">파일 확장자로 분류합니다. ZIP 압축 파일과 분류되지 않은 형식은 ‘기타’에 표시됩니다.</p>
       <p id="filter-results" class="filter-results" role="status" aria-live="polite">전체 0개 중 0개 표시 · 전체</p>
-      <div id="vault-reset-confirm" class="vault-reset-confirm" hidden>
+      <div id="vault-reset-confirm" class="vault-reset-confirm" role="group" aria-labelledby="vault-reset-question" hidden>
         <p id="vault-reset-question">보관함 목록과 선택 중인 파일을 모두 비울까요? 신청한 용량과 이메일은 유지됩니다.</p>
         <div class="vault-actions">
-          <button type="button" id="confirm-vault-reset" aria-describedby="vault-reset-question">모두 비우기</button>
+          <button type="button" id="confirm-vault-reset" aria-describedby="vault-reset-question">보관함 모두 비우기</button>
           <button type="button" id="cancel-vault-reset" class="vault-secondary">취소 · 계속 보관하기</button>
         </div>
       </div>
