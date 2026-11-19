@@ -1,30 +1,74 @@
-// 클릭한 탭만 선택하고, 연결된 콘텐츠만 표시합니다.
-const tabs = [...document.querySelectorAll('[role="tab"]')];
-const activateTab = (selectedTab) => {
-  tabs.forEach((tab) => {
-    const selected = tab === selectedTab;
-    tab.setAttribute("aria-selected", String(selected));
-    tab.tabIndex = selected ? 0 : -1;
-    document.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;
-  });
-  document.querySelector("#tab-status").textContent = `선택한 안내: ${selectedTab.textContent}`;
-};
+// 같은 초기화 함수를 여러 묶음에 적용해도 각 묶음의 상태만 변경합니다.
+const initializedTabs = new WeakSet();
+function initTabs(root) {
+  if (initializedTabs.has(root)) return;
+  const tablist = root.querySelector(':scope > [role="tablist"]');
+  if (!tablist) return;
+  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+  const panels = [...root.querySelectorAll(':scope > [role="tabpanel"]')];
+  const status = root.querySelector(':scope > [data-tab-status]');
+  const panelFor = (tab) => panels.find((panel) => panel.id === tab.getAttribute("aria-controls"));
+  if (!tabs.length || tabs.some((tab) => !panelFor(tab))) return;
+  initializedTabs.add(root);
 
-tabs.forEach((tab, index) => {
-  tab.addEventListener("click", () => activateTab(tab));
-  // 키보드 사용자도 방향키와 Home/End로 탭을 이동할 수 있습니다.
-  tab.addEventListener("keydown", (event) => {
-    let nextIndex;
-    if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
-    if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
-    if (event.key === "Home") nextIndex = 0;
-    if (event.key === "End") nextIndex = tabs.length - 1;
+  const activate = (selectedTab) => {
+    tabs.forEach((tab) => {
+      const selected = tab === selectedTab;
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      panelFor(tab).hidden = !selected;
+    });
+    if (status) status.textContent = `선택한 안내: ${selectedTab.textContent.trim()}`;
+  };
+  tablist.addEventListener("click", (event) => {
+    const tab = event.target.closest('[role="tab"]');
+    if (tabs.includes(tab)) activate(tab);
+  });
+  tablist.addEventListener("keydown", (event) => {
+    const index = tabs.indexOf(event.target.closest('[role="tab"]'));
+    if (index < 0) return;
+    const nextIndex = { ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[event.key];
     if (nextIndex === undefined) return;
     event.preventDefault();
-    activateTab(tabs[nextIndex]);
+    activate(tabs[nextIndex]);
     tabs[nextIndex].focus();
   });
-});
+  activate(tabs.find((tab) => tab.getAttribute("aria-selected") === "true") || tabs[0]);
+}
+
+const initializedAccordions = new WeakSet();
+function initAccordion(root) {
+  if (initializedAccordions.has(root)) return;
+  const buttons = [...root.querySelectorAll("[data-accordion-trigger]")].filter((button) => button.closest("[data-accordion]") === root);
+  const panels = [...root.querySelectorAll(".accordion-panel")].filter((panel) => panel.closest("[data-accordion]") === root);
+  const panelFor = (button) => panels.find((panel) => panel.id === button.getAttribute("aria-controls"));
+  if (!buttons.length || buttons.some((button) => !panelFor(button))) return;
+  initializedAccordions.add(root);
+
+  const setExpanded = (button, expanded) => {
+    const panel = panelFor(button);
+    if (!expanded && panel.contains(document.activeElement)) button.focus();
+    button.setAttribute("aria-expanded", String(expanded));
+    button.querySelector("[data-accordion-state]").textContent = expanded ? "접기" : "펼치기";
+    panel.hidden = !expanded;
+  };
+  root.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-accordion-trigger]");
+    if (buttons.includes(button)) setExpanded(button, button.getAttribute("aria-expanded") !== "true");
+  });
+  // Enter·Space는 기본 버튼 동작, 위·아래 방향키와 Home·End는 질문 간 이동입니다.
+  root.addEventListener("keydown", (event) => {
+    const index = buttons.indexOf(event.target.closest("[data-accordion-trigger]"));
+    if (index < 0) return;
+    const nextIndex = { ArrowDown: (index + 1) % buttons.length, ArrowUp: (index - 1 + buttons.length) % buttons.length, Home: 0, End: buttons.length - 1 }[event.key];
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    buttons[nextIndex].focus();
+  });
+  buttons.forEach((button) => setExpanded(button, button.getAttribute("aria-expanded") === "true"));
+}
+document.querySelectorAll("[data-tabs]").forEach(initTabs);
+document.querySelectorAll("[data-accordion]").forEach(initAccordion);
 
 // 소식 신청은 시작 → 입력 → 확인 → 완료의 네 상태로 진행합니다.
 const plans = {

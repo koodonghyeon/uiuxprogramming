@@ -318,12 +318,24 @@ section > h2 {
 
 /* 6주차: 세 개의 탭과 선택/입력 상태 */
 [hidden] { display: none !important; }
-.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 28px; padding: 6px; border-radius: 14px; background: #edf2f9; }
-.tabs button { min-width: 0; min-height: 48px; padding: 10px 8px; border: 0; border-radius: 10px; background: transparent; color: #46566e; font: inherit; font-weight: 700; cursor: pointer; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; padding: 6px; border-radius: 14px; background: #edf2f9; }
+.tabs button { flex: 1 1 80px; min-width: 0; min-height: 48px; padding: 10px 8px; border: 0; border-radius: 10px; background: transparent; color: #46566e; font: inherit; font-weight: 700; cursor: pointer; }
 .tabs button[aria-selected="true"] { background: var(--blue); color: white; box-shadow: 0 4px 12px #2563eb26; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
 .tabs + .tab-status { margin: -12px 0 22px; font-size: 0.9rem; font-weight: 700; }
 .tabs button:hover:not([aria-selected="true"]) { background: #dce7f8; }
 .tab-panel { overflow-wrap: anywhere; }
+.faq { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--line); }
+#features .faq-intro { margin-bottom: 18px; }
+.accordion { display: grid; gap: 12px; }
+.accordion-item { min-width: 0; border: 1px solid #8c9cb5; border-radius: 12px; background: white; }
+.accordion-heading, #features .accordion-heading { margin: 0; }
+.accordion-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 16px; border: 0; border-radius: 12px; background: #f5f7fb; color: var(--navy); font: inherit; font-size: 1rem; font-weight: 700; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.accordion-state { flex-shrink: 0; color: #344054; font-size: 0.85rem; }
+.accordion-trigger:hover { background: #e6efff; }
+.accordion-trigger[aria-expanded="true"] { background: #e6efff; text-decoration: underline; text-underline-offset: 4px; }
+.accordion-panel { padding: 18px; overflow-wrap: anywhere; }
+.accordion-panel p { margin: 0; }
+.accordion-panel .flow-link { margin-top: 12px; }
 #features .panel-intro { margin-bottom: 22px; }
 .field-label { display: block; margin-bottom: 8px; font-weight: 700; }
 #capacity { display: block; width: 100%; min-width: 0; min-height: 52px; padding: 12px; border: 1px solid #aab7c9; border-radius: 12px; background: white; color: var(--text); font: inherit; }

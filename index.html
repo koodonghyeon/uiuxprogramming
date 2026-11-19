@@ -36,13 +36,14 @@
 
     <section id="features">
       <h2>보관소 둘러보기</h2>
+      <div class="tab-group" data-tabs>
       <div class="tabs" role="tablist" aria-label="데이터 보관소 기능">
         <button type="button" id="tab-storage" role="tab" aria-selected="true" aria-controls="panel-storage" tabindex="0">파일 보관</button>
         <button type="button" id="tab-capacity" role="tab" aria-selected="false" aria-controls="panel-capacity" tabindex="-1">용량 선택</button>
         <button type="button" id="tab-guide" role="tab" aria-selected="false" aria-controls="panel-guide" tabindex="-1">이용 안내</button>
       </div>
 
-      <p id="tab-status" class="tab-status" role="status">선택한 안내: 파일 보관</p>
+      <p id="tab-status" class="tab-status" data-tab-status role="status">선택한 안내: 파일 보관</p>
       <div id="panel-storage" class="tab-panel" role="tabpanel" aria-labelledby="tab-storage" tabindex="0">
         <h3>파일마다 알맞은 자리를</h3>
         <p class="panel-intro">데이터 보관소에서 제공할 기능을 미리 살펴보세요.</p>
@@ -70,6 +71,26 @@
           <li>신청 완료 화면에서 ‘파일 보관함 체험하기’를 누르고 파일을 선택해 추가합니다.</li>
           <li>파일 목록과 남은 용량을 확인하고, 필요 없는 항목을 삭제합니다.</li>
         </ol>
+      </div>
+      </div>
+
+      <div class="faq">
+        <h3>자주 묻는 질문</h3>
+        <p class="faq-intro">궁금한 질문을 눌러 답변을 펼쳐보세요. 여러 답변을 함께 열어둘 수 있습니다.</p>
+        <div class="accordion" data-accordion>
+          <div class="accordion-item">
+            <h4 class="accordion-heading"><button type="button" id="faq-capacity-button" class="accordion-trigger" data-accordion-trigger aria-expanded="false" aria-controls="faq-capacity-answer"><span>어떤 저장 용량을 선택하면 좋을까요?</span><span class="accordion-state" data-accordion-state>펼치기</span></button></h4>
+            <div id="faq-capacity-answer" class="accordion-panel" role="region" aria-labelledby="faq-capacity-button" hidden><p>문서와 과제 위주라면 10GB, 사진과 일상 기록은 100GB, 동영상과 대용량 자료는 1TB를 선택해 보세요. 관심 용량은 소식 신청의 확인 단계에서 이전 단계로 돌아가 수정할 수 있습니다.</p></div>
+          </div>
+          <div class="accordion-item">
+            <h4 class="accordion-heading"><button type="button" id="faq-refresh-button" class="accordion-trigger" data-accordion-trigger aria-expanded="false" aria-controls="faq-refresh-answer"><span>새로고침해도 보관한 파일이 남아 있나요?</span><span class="accordion-state" data-accordion-state>펼치기</span></button></h4>
+            <div id="faq-refresh-answer" class="accordion-panel" role="region" aria-labelledby="faq-refresh-button" hidden><p>현재 파일 보관함은 이름과 크기로 보관 과정을 체험하는 기능입니다. 페이지 안에서 메뉴를 이동하면 목록이 유지되지만, 새로고침하면 초기화됩니다. 컴퓨터의 원본 파일은 변경되지 않습니다.</p></div>
+          </div>
+          <div class="accordion-item">
+            <h4 class="accordion-heading"><button type="button" id="faq-add-button" class="accordion-trigger" data-accordion-trigger aria-expanded="false" aria-controls="faq-add-answer"><span>파일을 추가할 수 없을 때는 어떻게 하나요?</span><span class="accordion-state" data-accordion-state>펼치기</span></button></h4>
+            <div id="faq-add-answer" class="accordion-panel" role="region" aria-labelledby="faq-add-button" hidden><p>파일을 선택했는지, 크기가 0B이거나 중복된 파일은 아닌지 확인해 주세요. 남은 용량이 부족하다면 보관한 파일을 삭제하거나 더 작은 파일을 선택한 뒤 다시 추가하면 됩니다.</p><a class="flow-link" href="#subscribe">소식 신청 후 파일 보관함 이용하기 →</a></div>
+          </div>
+        </div>
       </div>
     </section>
 
